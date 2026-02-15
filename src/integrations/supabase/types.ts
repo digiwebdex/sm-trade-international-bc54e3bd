@@ -196,6 +196,51 @@ export type Database = {
           },
         ]
       }
+      quote_requests: {
+        Row: {
+          company_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          message: string
+          phone: string | null
+          product_interest: string | null
+          quantity: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contact_person: string
+          created_at?: string
+          email: string
+          id?: string
+          logo_url?: string | null
+          message: string
+          phone?: string | null
+          product_interest?: string | null
+          quantity?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          message?: string
+          phone?: string | null
+          product_interest?: string | null
+          quantity?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
