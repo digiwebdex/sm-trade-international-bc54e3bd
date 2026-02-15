@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,12 +22,29 @@ const AdminLogin = () => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
     setLoading(true);
-    const { error } = await signIn(email.trim(), password.trim());
-    setLoading(false);
-    if (error) {
-      toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
+
+    if (isSignUp) {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      setLoading(false);
+      if (error) {
+        toast({ title: 'Sign Up Failed', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Account created! Logging in...' });
+        // Auto-login after signup
+        const { error: loginErr } = await signIn(email.trim(), password.trim());
+        if (!loginErr) navigate('/admin');
+      }
     } else {
-      navigate('/admin');
+      const { error } = await signIn(email.trim(), password.trim());
+      setLoading(false);
+      if (error) {
+        toast({ title: 'Login Failed', description: error.message, variant: 'destructive' });
+      } else {
+        navigate('/admin');
+      }
     }
   };
 
@@ -54,17 +73,28 @@ const AdminLogin = () => {
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder="Password (min 6 chars)"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 className="pl-10"
+                minLength={6}
                 required
               />
             </div>
             <Button type="submit" className="w-full bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Login'}
             </Button>
           </form>
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm-red hover:underline font-medium"
+            >
+              {isSignUp ? 'Login' : 'Sign Up'}
+            </button>
+          </p>
         </CardContent>
       </Card>
     </div>
