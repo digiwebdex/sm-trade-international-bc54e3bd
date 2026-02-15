@@ -27,76 +27,14 @@ const HeroSection = () => {
 
   return (
     <section id="home" className="relative min-h-[85vh] flex items-center overflow-hidden">
-      {/* Background image with parallax */}
+      {/* Background image */}
       <div
         ref={bgRef}
-        className="absolute inset-0 -top-20 -bottom-20 will-change-transform"
-        style={{ backgroundImage: `url(${heroBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
+        className="absolute inset-0 -top-20 -bottom-20 will-change-transform bg-cover bg-center"
+        style={{ backgroundImage: `url(${heroBg})` }}
       />
-      {/* Dark overlay for text readability */}
-      <div className="absolute inset-0 bg-[hsl(0,0%,4%)] opacity-60" />
-
-      {/* Animated gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute w-[700px] h-[700px] rounded-full opacity-30 blur-[100px]"
-          style={{
-            background: 'radial-gradient(circle, hsl(0 72% 45% / 0.8) 0%, transparent 70%)',
-            top: '10%',
-            left: '15%',
-            animation: 'heroOrb1 12s ease-in-out infinite',
-          }}
-        />
-        <div
-          className="absolute w-[500px] h-[500px] rounded-full opacity-20 blur-[80px]"
-          style={{
-            background: 'radial-gradient(circle, hsl(0 72% 55% / 0.6) 0%, transparent 70%)',
-            bottom: '5%',
-            right: '10%',
-            animation: 'heroOrb2 10s ease-in-out infinite',
-          }}
-        />
-        <div
-          className="absolute w-[400px] h-[400px] rounded-full opacity-15 blur-[60px]"
-          style={{
-            background: 'radial-gradient(circle, hsl(0 0% 100% / 0.1) 0%, transparent 70%)',
-            top: '50%',
-            left: '50%',
-            animation: 'heroOrb3 14s ease-in-out infinite',
-          }}
-        />
-      </div>
-
-      {/* Animated mesh gradient overlay */}
-      <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background: `
-            linear-gradient(135deg, transparent 0%, hsl(0 72% 20% / 0.3) 25%, transparent 50%),
-            linear-gradient(225deg, transparent 0%, hsl(0 72% 30% / 0.2) 35%, transparent 60%)
-          `,
-          animation: 'heroShimmer 8s ease-in-out infinite alternate',
-        }}
-      />
-
-      {/* Noise texture */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-      }} />
-
-      {/* Animated grid lines */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{
-        backgroundImage: `
-          linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px),
-          linear-gradient(0deg, hsl(0 0% 100%) 1px, transparent 1px)
-        `,
-        backgroundSize: '80px 80px',
-        animation: 'heroGrid 20s linear infinite',
-      }} />
-
-      {/* Top & bottom accent lines */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--sm-red))]/30 to-transparent" />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-[hsl(0,0%,4%)]/50" />
 
       {/* Content */}
       <div className="container mx-auto px-4 py-28 md:py-40 relative z-10">
@@ -119,24 +57,21 @@ const HeroSection = () => {
           >
             {subtitle}
           </p>
-            <div
+          <div
             className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-start"
             style={{ animation: 'heroFadeUp 0.8s 0.45s ease-out both' }}
           >
-            <Button asChild size="lg" className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-[hsl(var(--sm-red))] via-[hsl(0,80%,55%)] to-[hsl(var(--sm-red-dark))] bg-[length:200%_100%] animate-[heroGradientShift_3s_ease-in-out_infinite] text-white text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl shadow-[0_8px_32px_hsl(0_72%_51%/0.45)] hover:shadow-[0_16px_48px_hsl(0_72%_51%/0.6)] hover:scale-[1.05] active:scale-[0.98] transition-all duration-300 border border-white/15 group">
+            <Button asChild size="lg" className="w-full sm:w-auto bg-[hsl(var(--sm-red))] hover:bg-[hsl(var(--sm-red-dark))] text-white text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl transition-all duration-300">
               <a href="#contact">
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out" />
-                <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.3), inset 0 -1px 1px rgba(0,0,0,0.2)' }} />
-                <span className="relative flex items-center gap-2 font-semibold tracking-wide">
+                <span className="flex items-center gap-2 font-semibold tracking-wide">
                   {ctaPrimary}
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                 </span>
               </a>
             </Button>
-            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto relative overflow-hidden border-white/20 text-white bg-white/5 backdrop-blur-md text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl hover:bg-white/15 hover:border-white/40 hover:scale-[1.05] active:scale-[0.98] transition-all duration-300 shadow-[0_4px_24px_rgba(255,255,255,0.06)] group">
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-white/20 text-white bg-white/5 backdrop-blur-md text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl hover:bg-white/15 hover:border-white/40 transition-all duration-300">
               <a href="#products">
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out" />
-                <span className="relative font-semibold tracking-wide">{ctaSecondary}</span>
+                <span className="font-semibold tracking-wide">{ctaSecondary}</span>
               </a>
             </Button>
           </div>
