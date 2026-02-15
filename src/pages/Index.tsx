@@ -1,14 +1,23 @@
+import { lazy, Suspense } from 'react';
 import TopBar from '@/components/TopBar';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
-import AboutSection from '@/components/AboutSection';
-import ServicesSection from '@/components/ServicesSection';
-import ProcessSection from '@/components/ProcessSection';
-import ProductsSection from '@/components/ProductsSection';
-import ClientsSection from '@/components/ClientsSection';
-import ContactSection from '@/components/ContactSection';
-import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+
+// Lazy-load below-fold sections
+const AboutSection = lazy(() => import('@/components/AboutSection'));
+const ServicesSection = lazy(() => import('@/components/ServicesSection'));
+const ProcessSection = lazy(() => import('@/components/ProcessSection'));
+const ProductsSection = lazy(() => import('@/components/ProductsSection'));
+const ClientsSection = lazy(() => import('@/components/ClientsSection'));
+const ContactSection = lazy(() => import('@/components/ContactSection'));
+const Footer = lazy(() => import('@/components/Footer'));
+
+const SectionFallback = () => (
+  <div className="min-h-[200px] flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-muted-foreground/20 border-t-primary rounded-full animate-spin" />
+  </div>
+);
 
 const Index = () => {
   return (
@@ -17,14 +26,18 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
-        <AboutSection />
-        <ServicesSection />
-        <ProcessSection />
-        <ProductsSection />
-        <ClientsSection />
-        <ContactSection />
+        <Suspense fallback={<SectionFallback />}>
+          <AboutSection />
+          <ServicesSection />
+          <ProcessSection />
+          <ProductsSection />
+          <ClientsSection />
+          <ContactSection />
+        </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <WhatsAppFloat />
     </div>
   );
