@@ -119,14 +119,14 @@ const HeroSection = () => {
           >
             {subtitle}
           </p>
-          <div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            <div
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center"
             style={{ animation: 'heroFadeUp 0.8s 0.45s ease-out both' }}
           >
-            <Button asChild size="lg" className="bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white text-base px-10 py-6 rounded-lg shadow-lg shadow-red-900/30">
+            <Button asChild size="lg" className="w-full sm:w-auto bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white text-lg sm:text-base px-10 py-7 sm:py-6 rounded-lg shadow-lg shadow-red-900/30">
               <a href="#contact">{ctaPrimary}</a>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 text-base px-10 py-6 rounded-lg backdrop-blur-sm">
+            <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10 text-lg sm:text-base px-10 py-7 sm:py-6 rounded-lg backdrop-blur-sm">
               <a href="#products">{ctaSecondary}</a>
             </Button>
           </div>
