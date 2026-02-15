@@ -208,12 +208,6 @@ const ProductsSection = () => {
               </button>
             ))}
           </div>
-          {useDbData && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-              <Switch checked={showAll} onCheckedChange={setShowAll} className="scale-90" />
-              <span>{showAllLabel}</span>
-            </div>
-          )}
         </div>
 
         {/* Results count */}
