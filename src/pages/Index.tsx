@@ -3,6 +3,7 @@ import TopBar from '@/components/TopBar';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import MobileBottomBar from '@/components/MobileBottomBar';
 
 // Lazy-load below-fold sections
 const AboutSection = lazy(() => import('@/components/AboutSection'));
@@ -22,7 +23,7 @@ const SectionFallback = () => (
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-14 md:pb-0">
       <TopBar />
       <Navbar />
       <main>
@@ -41,6 +42,7 @@ const Index = () => {
         <Footer />
       </Suspense>
       <WhatsAppFloat />
+      <MobileBottomBar />
     </div>
   );
 };
