@@ -102,3 +102,35 @@
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes heroOrb1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(60px, -40px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.95); }
+}
+
+@keyframes heroOrb2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-50px, -30px) scale(1.15); }
+}
+
+@keyframes heroOrb3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  40% { transform: translate(-40%, -60%) scale(1.1); }
+  80% { transform: translate(-60%, -45%) scale(0.9); }
+}
+
+@keyframes heroShimmer {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.5; }
+}
+
+@keyframes heroGrid {
+  0% { background-position: 0 0; }
+  100% { background-position: 80px 80px; }
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
