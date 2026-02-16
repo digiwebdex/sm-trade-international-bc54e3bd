@@ -30,7 +30,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-5">
               <img src={logo} alt="Logo" className="h-11 rounded" />
               <div>
-                <span className="font-bold text-lg block">S. M. Trade International</span>
+                <span className="font-bold text-lg block" style={{ fontFamily: 'Montserrat, sans-serif' }}>S. M. Trade International</span>
                 <span className="text-primary-foreground/40 text-xs tracking-wider uppercase" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                   Premium Corporate Gifts
                 </span>

@@ -35,10 +35,10 @@ const Navbar = () => {
           <img src={logo} alt="S. M. Trade International" className="h-10 w-auto rounded" />
           <div className="hidden md:flex items-center gap-3">
             <div className="w-px h-7 bg-[hsl(var(--sm-gold))]/40" />
-            <span className="font-bold text-xl">S. M. Trade International</span>
+            <span className="font-bold text-xl" style={{ fontFamily: 'Montserrat, sans-serif' }}>S. M. Trade International</span>
           </div>
         </a>
-        <span className="md:hidden absolute left-1/2 -translate-x-1/2 font-bold text-sm tracking-wide text-center leading-tight">
+        <span className="md:hidden absolute left-1/2 -translate-x-1/2 font-bold text-sm tracking-wide text-center leading-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
           S. M. Trade International
         </span>
         <div className="hidden md:flex items-center gap-1">
