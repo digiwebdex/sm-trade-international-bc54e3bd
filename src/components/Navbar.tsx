@@ -31,6 +31,7 @@ const Navbar = () => {
     { key: 'nav.catalog', href: '/catalog', isRoute: true },
     { key: 'nav.gallery', href: '/gallery', isRoute: true },
     { key: 'nav.configurator', href: '/configurator', isRoute: true },
+    { key: 'nav.3dpreview', href: '/3d-preview', isRoute: true },
     { key: 'nav.contact', href: '#contact' },
   ];
 
