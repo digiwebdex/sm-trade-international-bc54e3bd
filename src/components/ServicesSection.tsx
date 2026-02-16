@@ -37,7 +37,7 @@ const ServicesSection = () => {
     <section id="services" className="py-20">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('categories.title')}</h2>
-        <div className="w-16 h-1 bg-sm-red mx-auto mb-8 rounded" />
+        <div className="w-16 h-1 bg-sm-gold mx-auto mb-8 rounded" />
 
         {/* Filter Chips */}
         <div className="flex justify-center gap-2 mb-10 flex-wrap">
@@ -89,7 +89,7 @@ const ServicesSection = () => {
                   <div className="w-16 h-16 bg-sm-red/10 rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:bg-sm-red transition-colors duration-300">
                     <s.icon className="h-8 w-8 text-sm-red group-hover:text-white transition-colors duration-300" />
                   </div>
-                  <h3 className="font-bold text-lg mb-3" style={{ fontFamily: 'Inter, Noto Sans Bengali, sans-serif' }}>
+                  <h3 className="font-bold text-lg mb-3" style={{ fontFamily: 'DM Sans, Noto Sans Bengali, sans-serif' }}>
                     {t(s.titleKey)}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{t(s.descKey)}</p>

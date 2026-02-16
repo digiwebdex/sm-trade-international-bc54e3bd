@@ -18,7 +18,7 @@ const ContactSection = () => {
     <section id="contact" className="py-20 bg-secondary">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('contact.title')}</h2>
-        <div className="w-16 h-1 bg-sm-red mx-auto mb-12 rounded" />
+        <div className="w-16 h-1 bg-sm-gold mx-auto mb-12 rounded" />
 
         <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
           <div>
@@ -37,21 +37,21 @@ const ContactSection = () => {
             <div className="flex items-start gap-4">
               <MapPin className="h-5 w-5 text-sm-red mt-1 shrink-0" />
               <div>
-                <h4 className="font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>{t('contact.address')}</h4>
+                <h4 className="font-semibold mb-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>{t('contact.address')}</h4>
                 <p className="text-muted-foreground text-sm">{address}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
               <Phone className="h-5 w-5 text-sm-red mt-1 shrink-0" />
               <div>
-                <h4 className="font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Phone</h4>
+                <h4 className="font-semibold mb-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>Phone</h4>
                 <p className="text-muted-foreground text-sm">{phone}</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
               <Mail className="h-5 w-5 text-sm-red mt-1 shrink-0" />
               <div>
-                <h4 className="font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Email</h4>
+                <h4 className="font-semibold mb-1" style={{ fontFamily: 'DM Sans, sans-serif' }}>Email</h4>
                 <p className="text-muted-foreground text-sm">{email}</p>
               </div>
             </div>

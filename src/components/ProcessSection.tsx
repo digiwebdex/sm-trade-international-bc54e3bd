@@ -16,7 +16,7 @@ const ProcessSection = () => {
     <section className="py-20 bg-secondary">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('process.title')}</h2>
-        <div className="w-16 h-1 bg-sm-red mx-auto mb-14 rounded" />
+        <div className="w-16 h-1 bg-sm-gold mx-auto mb-14 rounded" />
 
         <div className="relative max-w-4xl mx-auto">
           {/* Connecting line */}
@@ -31,7 +31,7 @@ const ProcessSection = () => {
                 <span className="text-xs font-bold text-sm-red mb-2 uppercase tracking-wider">
                   Step {i + 1}
                 </span>
-                <h3 className="font-semibold text-sm mb-1" style={{ fontFamily: 'Inter, Noto Sans Bengali, sans-serif' }}>
+                <h3 className="font-semibold text-sm mb-1" style={{ fontFamily: 'DM Sans, Noto Sans Bengali, sans-serif' }}>
                   {t(step.titleKey)}
                 </h3>
                 <p className="text-muted-foreground text-xs leading-relaxed">

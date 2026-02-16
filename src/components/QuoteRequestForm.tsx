@@ -99,7 +99,7 @@ const QuoteRequestForm = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-center">{t('quote.title')}</h2>
         </div>
         <p className="text-center text-muted-foreground mb-2 max-w-2xl mx-auto">{t('quote.subtitle')}</p>
-        <div className="w-16 h-1 bg-sm-red mx-auto mb-12 rounded" />
+        <div className="w-16 h-1 bg-sm-gold mx-auto mb-12 rounded" />
 
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">

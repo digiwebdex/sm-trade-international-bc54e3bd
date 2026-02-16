@@ -14,7 +14,7 @@ const Footer = () => {
   const address = get('contact', 'address', t('contact.addressValue'));
 
   return (
-    <footer className="bg-sm-black text-white py-12">
+    <footer className="bg-primary text-primary-foreground py-12">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
@@ -22,14 +22,14 @@ const Footer = () => {
               <img src={logo} alt="Logo" className="h-10 rounded" />
               <span className="font-bold text-lg">S. M. Trade International</span>
             </div>
-            <p className="text-white/60 text-sm leading-relaxed">{desc}</p>
+            <p className="text-primary-foreground/60 text-sm leading-relaxed">{desc}</p>
           </div>
 
           <div>
-            <h4 className="font-bold mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>{t('footer.quicklinks')}</h4>
+            <h4 className="font-bold mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>{t('footer.quicklinks')}</h4>
             <div className="space-y-2">
               {['nav.home', 'nav.about', 'nav.services', 'nav.products', 'nav.contact'].map(k => (
-                <a key={k} href={`#${k.split('.')[1]}`} className="block text-white/60 hover:text-sm-red text-sm transition-colors">
+                <a key={k} href={`#${k.split('.')[1]}`} className="block text-primary-foreground/60 hover:text-[hsl(var(--sm-gold))] text-sm transition-colors">
                   {t(k)}
                 </a>
               ))}
@@ -37,8 +37,8 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="font-bold mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>{t('footer.contactinfo')}</h4>
-            <div className="space-y-3 text-sm text-white/60">
+            <h4 className="font-bold mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>{t('footer.contactinfo')}</h4>
+            <div className="space-y-3 text-sm text-primary-foreground/60">
               <div className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" />{address}</div>
               <div className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" />{phone}</div>
               <div className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" />{email}</div>
@@ -46,7 +46,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-8 pt-8 text-center text-white/40 text-sm">
+        <div className="border-t border-primary-foreground/10 mt-8 pt-8 text-center text-primary-foreground/40 text-sm">
           © {new Date().getFullYear()} S. M. Trade International. {copyright}
         </div>
       </div>

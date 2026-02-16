@@ -5,7 +5,7 @@ const TopBar = () => {
   const { lang, toggleLang } = useLanguage();
 
   return (
-    <div className="bg-sm-black text-primary-foreground py-2 text-sm">
+    <div className="bg-primary text-primary-foreground py-2 text-sm">
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4 flex-wrap">
           <a href="tel:+8801867666888" className="flex items-center gap-1 hover:text-sm-red transition-colors">
@@ -22,7 +22,7 @@ const TopBar = () => {
             href="https://wa.me/8801867666888"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[hsl(142,70%,40%)] text-white px-3 py-0.5 rounded text-xs font-medium hover:bg-[hsl(142,70%,35%)] transition-colors"
+            className="bg-[hsl(var(--sm-gold))] text-white px-3 py-0.5 rounded text-xs font-medium hover:bg-[hsl(var(--sm-gold-dark))] transition-colors"
           >
             WhatsApp
           </a>

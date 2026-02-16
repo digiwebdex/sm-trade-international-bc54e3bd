@@ -32,7 +32,7 @@ const Navbar = () => {
         <span className="md:hidden absolute left-1/2 -translate-x-1/2 font-bold text-sm tracking-wide text-center leading-tight">S. M. Trade International</span>
         <div className="hidden md:flex items-center gap-6">
           {links.map(l => (
-            <a key={l.key} href={l.href} className="font-medium hover:text-sm-red transition-colors text-sm">
+            <a key={l.key} href={l.href} className="font-medium hover:text-primary transition-colors text-sm">
               {t(l.key)}
             </a>
           ))}
@@ -44,7 +44,7 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden bg-background border-t px-4 pb-4">
           {links.map(l => (
-            <a key={l.key} href={l.href} onClick={() => setMobileOpen(false)} className="block py-2 font-medium hover:text-sm-red transition-colors">
+            <a key={l.key} href={l.href} onClick={() => setMobileOpen(false)} className="block py-2 font-medium hover:text-primary transition-colors">
               {t(l.key)}
             </a>
           ))}

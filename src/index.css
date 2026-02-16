@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,64 +6,73 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 8%;
+    --background: 40 33% 97%;
+    --foreground: 150 20% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card: 40 30% 99%;
+    --card-foreground: 150 20% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 40 30% 99%;
+    --popover-foreground: 150 20% 12%;
 
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 155 50% 24%;
+    --primary-foreground: 40 30% 97%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 40 25% 93%;
+    --secondary-foreground: 150 20% 12%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 40 20% 94%;
+    --muted-foreground: 40 10% 46%;
 
-    --accent: 0 72% 51%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 38 50% 58%;
+    --accent-foreground: 150 20% 12%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 72% 51%;
+    --border: 38 18% 86%;
+    --input: 38 18% 86%;
+    --ring: 155 50% 24%;
 
     --radius: 0.5rem;
 
-    --sm-red: 0 72% 51%;
-    --sm-red-dark: 0 72% 42%;
-    --sm-black: 0 0% 8%;
-    --sm-white: 0 0% 100%;
-    --sm-gray: 0 0% 96%;
-    --sm-gray-dark: 0 0% 30%;
+    --sm-green: 155 50% 24%;
+    --sm-green-dark: 155 50% 18%;
+    --sm-gold: 38 50% 58%;
+    --sm-gold-dark: 38 50% 48%;
+    --sm-black: 150 20% 10%;
+    --sm-white: 40 30% 97%;
+    --sm-gray: 40 20% 94%;
+    --sm-gray-dark: 150 10% 30%;
+
+    /* Keep legacy aliases for components still using --sm-red */
+    --sm-red: 155 50% 24%;
+    --sm-red-dark: 155 50% 18%;
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 8%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 72% 51%;
-    --accent-foreground: 0 0% 100%;
+    --background: 150 15% 6%;
+    --foreground: 40 20% 92%;
+    --card: 150 15% 9%;
+    --card-foreground: 40 20% 92%;
+    --popover: 150 15% 9%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 155 45% 40%;
+    --primary-foreground: 150 15% 6%;
+    --secondary: 150 10% 14%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 150 10% 14%;
+    --muted-foreground: 40 10% 55%;
+    --accent: 38 50% 58%;
+    --accent-foreground: 40 20% 92%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 72% 51%;
+    --destructive-foreground: 40 20% 92%;
+    --border: 150 10% 18%;
+    --input: 150 10% 18%;
+    --ring: 155 45% 40%;
+
+    --sm-red: 155 45% 40%;
+    --sm-red-dark: 155 45% 34%;
   }
 }
 
@@ -73,26 +82,32 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+    font-family: 'DM Sans', 'Noto Sans Bengali', sans-serif;
   }
   h1, h2, h3, h4 {
-    font-family: 'Playfair Display', 'Noto Sans Bengali', serif;
+    font-family: 'Cormorant Garamond', 'Noto Sans Bengali', serif;
   }
 }
 
 @layer utilities {
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(var(--sm-red)), hsl(var(--sm-red-dark)));
+    background-image: linear-gradient(135deg, hsl(var(--sm-green)), hsl(var(--sm-gold)));
   }
   .bg-sm-red {
-    background-color: hsl(var(--sm-red));
+    background-color: hsl(var(--sm-green));
   }
   .bg-sm-black {
     background-color: hsl(var(--sm-black));
   }
   .text-sm-red {
-    color: hsl(var(--sm-red));
+    color: hsl(var(--sm-green));
+  }
+  .bg-sm-gold {
+    background-color: hsl(var(--sm-gold));
+  }
+  .text-sm-gold {
+    color: hsl(var(--sm-gold));
   }
   .hover-lift {
     @apply transition-transform duration-300 hover:-translate-y-1;
@@ -101,33 +116,6 @@
 
 html {
   scroll-behavior: smooth;
-}
-
-@keyframes heroOrb1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(60px, -40px) scale(1.1); }
-  66% { transform: translate(-30px, 30px) scale(0.95); }
-}
-
-@keyframes heroOrb2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-50px, -30px) scale(1.15); }
-}
-
-@keyframes heroOrb3 {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  40% { transform: translate(-40%, -60%) scale(1.1); }
-  80% { transform: translate(-60%, -45%) scale(0.9); }
-}
-
-@keyframes heroShimmer {
-  0% { opacity: 0.3; }
-  100% { opacity: 0.5; }
-}
-
-@keyframes heroGrid {
-  0% { background-position: 0 0; }
-  100% { background-position: 80px 80px; }
 }
 
 @keyframes heroFadeUp {

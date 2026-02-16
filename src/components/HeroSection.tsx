@@ -18,14 +18,14 @@ const HeroSection = () => {
       <img src={heroBg} alt="Premium corporate gifts" className="w-full h-auto block" />
       
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-[hsl(0,0%,4%)]/50" />
+      <div className="absolute inset-0 bg-[hsl(150,20%,6%)]/60" />
 
       {/* Content */}
       <div className="absolute inset-0 flex items-center">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl text-left">
             <div
-              className="inline-block bg-white/10 backdrop-blur-sm text-white text-xs font-semibold px-5 py-2 rounded-full mb-8 tracking-widest uppercase border border-white/10"
+              className="inline-block bg-[hsl(var(--sm-gold))]/20 backdrop-blur-sm text-[hsl(var(--sm-gold))] text-xs font-semibold px-5 py-2 rounded-full mb-8 tracking-widest uppercase border border-[hsl(var(--sm-gold))]/30"
               style={{ animation: 'heroFadeUp 0.8s ease-out both' }}
             >
               S. M. Trade International
@@ -46,7 +46,7 @@ const HeroSection = () => {
               className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-start"
               style={{ animation: 'heroFadeUp 0.8s 0.45s ease-out both' }}
             >
-              <Button asChild size="lg" className="w-full sm:w-auto bg-[hsl(var(--sm-red))] hover:bg-[hsl(var(--sm-red-dark))] text-white text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl transition-all duration-300">
+              <Button asChild size="lg" className="w-full sm:w-auto bg-[hsl(var(--sm-gold))] hover:bg-[hsl(var(--sm-gold-dark))] text-white text-lg sm:text-base px-12 py-7 sm:py-6 rounded-xl transition-all duration-300">
                 <a href="#contact">
                   <span className="flex items-center gap-2 font-semibold tracking-wide">
                     {ctaPrimary}

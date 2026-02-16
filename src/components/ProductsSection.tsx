@@ -182,7 +182,7 @@ const ProductsSection = () => {
     <section id="products" className="py-20 bg-secondary">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('products.title')}</h2>
-        <div className="w-16 h-1 bg-sm-red mx-auto mb-8 rounded" />
+        <div className="w-16 h-1 bg-sm-gold mx-auto mb-8 rounded" />
 
         {/* Search bar */}
         <div className="max-w-md mx-auto mb-6 relative">
