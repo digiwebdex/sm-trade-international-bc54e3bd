@@ -11,6 +11,7 @@ const ServicesSection = lazy(() => import('@/components/ServicesSection'));
 const ProcessSection = lazy(() => import('@/components/ProcessSection'));
 const ProductsSection = lazy(() => import('@/components/ProductsSection'));
 const ClientsSection = lazy(() => import('@/components/ClientsSection'));
+const BulkOrderCalculator = lazy(() => import('@/components/BulkOrderCalculator'));
 const QuoteRequestForm = lazy(() => import('@/components/QuoteRequestForm'));
 const ContactSection = lazy(() => import('@/components/ContactSection'));
 const Footer = lazy(() => import('@/components/Footer'));
@@ -34,6 +35,7 @@ const Index = () => {
           <ProcessSection />
           <ProductsSection />
           <ClientsSection />
+          <BulkOrderCalculator />
           <QuoteRequestForm />
           <ContactSection />
         </Suspense>
