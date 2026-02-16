@@ -17,6 +17,7 @@ const translations: Record<string, Record<Lang, string>> = {
   'nav.contact': { en: 'Contact', bn: 'যোগাযোগ' },
   'nav.catalog': { en: 'Catalog', bn: 'ক্যাটালগ' },
   'nav.gallery': { en: 'Gallery', bn: 'গ্যালারি' },
+  'nav.configurator': { en: 'Configure', bn: 'কনফিগার' },
   // Hero
   'hero.title': { en: 'Premium Customized Corporate Gifts & Promotional Products', bn: 'প্রিমিয়াম কাস্টমাইজড কর্পোরেট গিফট ও প্রমোশনাল পণ্য' },
   'hero.subtitle': { en: 'We customize your brand identity with quality, precision and professionalism.', bn: 'আমরা আপনার ব্র্যান্ড পরিচয় মানসম্মতভাবে, নির্ভুলতার সাথে এবং পেশাদারিত্বের মাধ্যমে কাস্টমাইজ করি।' },
