@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const Portfolio = lazy(() => import("./pages/Portfolio"));
+const Catalog = lazy(() => import("./pages/Catalog"));
 
 // Lazy-load admin routes – they're never needed on the public site
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -42,6 +43,9 @@ const App = () => (
             <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/catalog" element={
+                <Suspense fallback={<AdminFallback />}><Catalog /></Suspense>
+              } />
               <Route path="/portfolio" element={
                 <Suspense fallback={<AdminFallback />}><Portfolio /></Suspense>
               } />
