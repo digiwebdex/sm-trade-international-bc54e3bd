@@ -32,6 +32,7 @@ const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminImport = lazy(() => import("./pages/admin/AdminImport"));
+const AdminHomeSections = lazy(() => import("./pages/admin/AdminHomeSections"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -102,6 +103,7 @@ const App = () => (
                 <Route path="messages" element={<Suspense fallback={<AdminFallback />}><AdminMessages /></Suspense>} />
                 <Route path="settings" element={<Suspense fallback={<AdminFallback />}><AdminSettings /></Suspense>} />
                 <Route path="import" element={<Suspense fallback={<AdminFallback />}><AdminImport /></Suspense>} />
+                <Route path="home-sections" element={<Suspense fallback={<AdminFallback />}><AdminHomeSections /></Suspense>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
