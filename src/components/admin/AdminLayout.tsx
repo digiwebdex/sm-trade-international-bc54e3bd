@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Package, FolderOpen, Image, Users, Mail,
-  Settings, LogOut, Menu, X, Upload
+  Settings, LogOut, Menu, X, Upload, Home
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import logo from '@/assets/logo.jpeg';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+  { label: 'Home Sections', icon: Home, path: '/admin/home-sections' },
   { label: 'Products', icon: Package, path: '/admin/products' },
   { label: 'Categories', icon: FolderOpen, path: '/admin/categories' },
   { label: 'Gallery', icon: Image, path: '/admin/gallery' },
