@@ -218,6 +218,14 @@ const ProductDetail = () => {
               productImages={productImages}
               variantImages={variantImages}
               activeVariantImage={activeVariant?.image_url}
+              variants={variants.map(v => ({
+                id: v.id,
+                image_url: v.image_url,
+                variant_label_en: v.variant_label_en,
+                color_hex: v.color_hex,
+              }))}
+              selectedVariantId={selectedVariant || variants[0]?.id || null}
+              onVariantSelect={setSelectedVariant}
               title={title}
             />
             {!product.is_active && (
