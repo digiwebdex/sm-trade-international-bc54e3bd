@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Pause, Play } from 'lucide-react';
 import OptimizedImage from '@/components/OptimizedImage';
 import heroBg from '@/assets/hero-bg.jpg';
 
@@ -42,22 +42,42 @@ const stats = [
   { value: '50+', label: 'Countries' },
 ];
 
+const ITEM_W = 220; // px per card including gap
+const SPEED = 3000; // ms per item
+
 const HeroSection = () => {
   const { t } = useLanguage();
   const { get } = useSiteSettings();
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const title = get('hero', 'title', t('hero.title'));
   const subtitle = get('hero', 'subtitle', t('hero.subtitle'));
   const ctaPrimary = get('hero', 'cta_primary', t('hero.cta'));
 
-  const next = useCallback(() => setCurrent(i => (i + 1) % carouselItems.length), []);
-  const prev = useCallback(() => setCurrent(i => (i - 1 + carouselItems.length) % carouselItems.length), []);
+  const len = carouselItems.length;
 
+  const next = useCallback(() => setCurrent(i => i + 1), []);
+  const prev = useCallback(() => setCurrent(i => i - 1), []);
+
+  // Auto-advance indefinitely
   useEffect(() => {
-    const timer = setInterval(next, 3500);
-    return () => clearInterval(timer);
-  }, [next]);
+    if (paused) return;
+    timerRef.current = setInterval(next, SPEED);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [next, paused]);
+
+  // Normalise index for display
+  const normIndex = ((current % len) + len) % len;
+
+  // We render 5 copies so the strip is wide enough to scroll in both directions
+  const copies = 5;
+  const items = Array.from({ length: copies }, () => carouselItems).flat();
+  const centerOffset = Math.floor(copies / 2) * len;
+
+  // Translate so the current item is centred
+  const translateX = -(current + centerOffset) * ITEM_W;
 
   return (
     <section id="home" className="relative overflow-hidden bg-foreground">
@@ -136,71 +156,77 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right — 3D Product Carousel */}
+          {/* Right — Infinite Carousel */}
           <div
             className="relative flex flex-col items-center justify-center"
             style={{ animation: 'heroFadeUp 0.7s 0.4s ease-out both' }}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
           >
-            <div className="relative w-full max-w-md" style={{ perspective: '1000px' }}>
-              {/* Glow behind carousel */}
-              <div className="absolute inset-12 rounded-full bg-accent/15 blur-3xl" />
+            {/* Glow behind carousel */}
+            <div className="absolute inset-12 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
 
-              {/* 3D Carousel ring */}
-              <div className="relative w-full aspect-square flex items-center justify-center">
-                <div
-                  className="relative w-48 h-48 md:w-56 md:h-56"
-                  style={{
-                    transformStyle: 'preserve-3d',
-                    transform: `rotateY(${-current * (360 / carouselItems.length)}deg)`,
-                    transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                  }}
-                >
-                  {carouselItems.map((item, i) => {
-                    const angle = (360 / carouselItems.length) * i;
-                    const radius = 220;
-                    return (
+            {/* Edge fade masks */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-foreground to-transparent z-20 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-foreground to-transparent z-20 pointer-events-none" />
+
+            {/* Scrolling strip */}
+            <div className="relative w-full overflow-hidden py-8">
+              <div
+                className="flex items-center transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+                style={{
+                  transform: `translateX(calc(50% - ${ITEM_W / 2}px + ${translateX}px))`,
+                  willChange: 'transform',
+                }}
+              >
+                {items.map((item, i) => {
+                  const realIdx = i % len;
+                  const isActive = realIdx === normIndex;
+                  return (
+                    <div
+                      key={i}
+                      className="shrink-0 flex flex-col items-center"
+                      style={{ width: ITEM_W }}
+                    >
                       <div
-                        key={i}
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{
-                          transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
-                          backfaceVisibility: 'hidden',
-                        }}
+                        className={`relative p-4 rounded-2xl border transition-all duration-500 bg-white cursor-pointer ${
+                          isActive
+                            ? 'border-accent/30 shadow-2xl shadow-accent/20 scale-110 z-10'
+                            : 'border-border/20 scale-[0.85] opacity-50'
+                        }`}
+                        onClick={() => setCurrent(current + (realIdx - normIndex))}
                       >
-                        <div className={`relative p-4 rounded-2xl border transition-all duration-500 bg-white ${
-                          i === current
-                            ? 'border-accent/30 shadow-2xl shadow-accent/20 scale-110'
-                            : 'border-gray-200 scale-90 opacity-60'
-                        }`}>
-                          <OptimizedImage
-                            src={item.img}
-                            alt={item.label}
-                            className="w-36 h-36 md:w-44 md:h-44 object-contain"
-                            sizes="(min-width: 768px) 176px, 144px"
-                            priority={i === 0}
-                          />
-                          <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap transition-all duration-500 ${
-                            i === current
-                              ? 'bg-accent text-white opacity-100'
-                              : 'bg-white/10 text-white/50 opacity-0'
-                          }`}
-                            style={{ fontFamily: 'DM Sans, sans-serif' }}
-                          >
-                            {item.label}
-                          </div>
-                        </div>
+                        <OptimizedImage
+                          src={item.img}
+                          alt={item.label}
+                          className="w-36 h-36 md:w-40 md:h-40 object-contain"
+                          sizes="160px"
+                          priority={i < len}
+                          blurPlaceholder={false}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
+                      {/* Label */}
+                      <div
+                        className={`mt-3 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap transition-all duration-500 ${
+                          isActive
+                            ? 'bg-accent text-white opacity-100 translate-y-0'
+                            : 'bg-transparent text-white/30 opacity-0 translate-y-2'
+                        }`}
+                        style={{ fontFamily: 'DM Sans, sans-serif' }}
+                      >
+                        {item.label}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Reflection/floor effect */}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-accent/10 blur-2xl rounded-full" />
             </div>
 
+            {/* Reflection */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-accent/10 blur-2xl rounded-full" />
+
             {/* Carousel controls */}
-            <div className="flex items-center gap-6 mt-6">
+            <div className="flex items-center gap-6 mt-2 relative z-30">
               <button
                 onClick={prev}
                 className="w-11 h-11 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white hover:border-accent/50 hover:bg-accent/10 transition-all duration-300"
@@ -208,14 +234,14 @@ const HeroSection = () => {
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              {/* Dots */}
-              <div className="flex gap-2">
+              {/* Progress dots */}
+              <div className="flex gap-1.5">
                 {carouselItems.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setCurrent(i)}
+                    onClick={() => setCurrent(current + (i - normIndex))}
                     className={`rounded-full transition-all duration-400 ${
-                      i === current ? 'w-7 h-2 bg-accent' : 'w-2 h-2 bg-white/25 hover:bg-white/50'
+                      i === normIndex ? 'w-7 h-2 bg-accent' : 'w-2 h-2 bg-white/25 hover:bg-white/50'
                     }`}
                   />
                 ))}
@@ -226,6 +252,15 @@ const HeroSection = () => {
                 className="w-11 h-11 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm flex items-center justify-center text-white/60 hover:text-white hover:border-accent/50 hover:bg-accent/10 transition-all duration-300"
               >
                 <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Pause/play */}
+              <button
+                onClick={() => setPaused(p => !p)}
+                className="w-9 h-9 rounded-full border border-white/15 bg-white/5 backdrop-blur-sm flex items-center justify-center text-white/40 hover:text-white/70 transition-all duration-300"
+                title={paused ? 'Play' : 'Pause'}
+              >
+                {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
