@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Loader2, Globe, Layout, Users, Phone, FileText } from 'lucide-react';
+import { Save, Loader2, Globe, Layout, Users, Phone, FileText, Layers, Cog } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
 
 type SettingsMap = Record<string, Record<string, string>>;
@@ -47,6 +47,32 @@ const defaultSettings: Record<string, SettingsMap> = {
   footer: {
     description: { en: '', bn: '' },
     copyright: { en: '', bn: '' },
+  },
+  services: {
+    service1_title: { en: '', bn: '' },
+    service1_desc: { en: '', bn: '' },
+    service1_icon: { en: 'Gift', bn: 'Gift' },
+    service2_title: { en: '', bn: '' },
+    service2_desc: { en: '', bn: '' },
+    service2_icon: { en: 'Monitor', bn: 'Monitor' },
+    service3_title: { en: '', bn: '' },
+    service3_desc: { en: '', bn: '' },
+    service3_icon: { en: 'Briefcase', bn: 'Briefcase' },
+    service4_title: { en: '', bn: '' },
+    service4_desc: { en: '', bn: '' },
+    service4_icon: { en: 'GlassWater', bn: 'GlassWater' },
+  },
+  process: {
+    step1_title: { en: '', bn: '' },
+    step1_desc: { en: '', bn: '' },
+    step2_title: { en: '', bn: '' },
+    step2_desc: { en: '', bn: '' },
+    step3_title: { en: '', bn: '' },
+    step3_desc: { en: '', bn: '' },
+    step4_title: { en: '', bn: '' },
+    step4_desc: { en: '', bn: '' },
+    step5_title: { en: '', bn: '' },
+    step5_desc: { en: '', bn: '' },
   },
 };
 
@@ -196,12 +222,18 @@ const AdminSettings = () => {
       </div>
 
       <Tabs defaultValue="hero" className="w-full">
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+        <TabsList className="grid grid-cols-7 w-full max-w-3xl">
           <TabsTrigger value="hero" className="gap-1.5 text-xs">
             <Layout className="h-3.5 w-3.5" /> Hero
           </TabsTrigger>
           <TabsTrigger value="about" className="gap-1.5 text-xs">
             <Users className="h-3.5 w-3.5" /> About
+          </TabsTrigger>
+          <TabsTrigger value="services" className="gap-1.5 text-xs">
+            <Cog className="h-3.5 w-3.5" /> Services
+          </TabsTrigger>
+          <TabsTrigger value="process" className="gap-1.5 text-xs">
+            <Layers className="h-3.5 w-3.5" /> Process
           </TabsTrigger>
           <TabsTrigger value="contact" className="gap-1.5 text-xs">
             <Phone className="h-3.5 w-3.5" /> Contact
@@ -251,6 +283,45 @@ const AdminSettings = () => {
                 </div>
               </div>
               <SaveButton section="about" />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="services">
+          <Card>
+            <CardHeader>
+              <CardTitle>Services Section</CardTitle>
+              <CardDescription>Edit the 4 service cards shown on the homepage</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="border rounded-lg p-4 space-y-3">
+                  <Label className="font-semibold">Service {n}</Label>
+                  <BilingualField section="services" field={`service${n}_title`} label="Title" />
+                  <BilingualField section="services" field={`service${n}_desc`} label="Description" multiline />
+                  <BilingualField section="services" field={`service${n}_icon`} label="Icon Name (Lucide)" />
+                </div>
+              ))}
+              <SaveButton section="services" />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="process">
+          <Card>
+            <CardHeader>
+              <CardTitle>Process Steps</CardTitle>
+              <CardDescription>Edit the 5 "How It Works" steps on the homepage</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="border rounded-lg p-4 space-y-3">
+                  <Label className="font-semibold">Step {n}</Label>
+                  <BilingualField section="process" field={`step${n}_title`} label="Title" />
+                  <BilingualField section="process" field={`step${n}_desc`} label="Description" multiline />
+                </div>
+              ))}
+              <SaveButton section="process" />
             </CardContent>
           </Card>
         </TabsContent>
