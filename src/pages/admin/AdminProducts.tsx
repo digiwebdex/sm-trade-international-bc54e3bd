@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import BulkUploadZone, { type FileItem } from '@/components/admin/BulkUploadZone';
 import VariantManager from '@/components/admin/VariantManager';
+import ProductImageManager from '@/components/admin/ProductImageManager';
 
 const PAGE_SIZE = 12;
 
@@ -44,6 +45,7 @@ const AdminProducts = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [savedProductId, setSavedProductId] = useState<string | null>(null); // ID after first save (add mode)
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -135,15 +137,28 @@ const AdminProducts = () => {
       if (editId) {
         const { error } = await supabase.from('products').update(payload).eq('id', editId);
         if (error) throw error;
+        return null;
       } else {
-        const { error } = await supabase.from('products').insert({ ...payload, sort_order: products.length + 1 });
+        const { data, error } = await supabase
+          .from('products')
+          .insert({ ...payload, sort_order: products.length + 1 } as any)
+          .select('id')
+          .single();
         if (error) throw error;
+        return data?.id ?? null;
       }
     },
-    onSuccess: () => {
+    onSuccess: (newId) => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      toast({ title: editId ? 'Product updated' : 'Product created' });
-      closeDialog();
+      if (newId) {
+        // Stay in dialog to allow image uploads, update editId to new product
+        setEditId(newId);
+        setSavedProductId(newId);
+        toast({ title: 'Product created — now add images below' });
+      } else {
+        toast({ title: 'Product updated' });
+        closeDialog();
+      }
     },
     onError: (err: Error) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
@@ -201,7 +216,7 @@ const AdminProducts = () => {
     setDialogOpen(true);
   };
 
-  const closeDialog = () => { setDialogOpen(false); setEditId(null); setForm(emptyForm); };
+  const closeDialog = () => { setDialogOpen(false); setEditId(null); setSavedProductId(null); setForm(emptyForm); };
 
   const handleBulkImport = useCallback(async () => {
     const pending = bulkFiles.filter(f => f.status === 'pending');
@@ -419,12 +434,26 @@ const AdminProducts = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
-                  <Button type="submit" className="bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white" disabled={saveMutation.isPending}>
-                    {saveMutation.isPending ? 'Saving...' : 'Save'}
-                  </Button>
+                  {savedProductId ? (
+                    <Button type="button" className="bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white" onClick={closeDialog}>
+                      Done
+                    </Button>
+                  ) : (
+                    <Button type="submit" className="bg-sm-red hover:bg-[hsl(var(--sm-red-dark))] text-white" disabled={saveMutation.isPending}>
+                      {saveMutation.isPending ? 'Saving...' : 'Save'}
+                    </Button>
+                  )}
                 </div>
               </form>
-              {editId && (
+
+              {/* Multi-view image uploader — shown after product is saved (add) or always in edit */}
+              {(editId) && (
+                <div className="border-t border-border pt-4 mt-2">
+                  <ProductImageManager productId={editId} />
+                </div>
+              )}
+
+              {editId && !savedProductId && (
                 <div className="border-t border-border pt-4 mt-4">
                   <VariantManager productId={editId} />
                 </div>
