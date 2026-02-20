@@ -141,20 +141,20 @@ const Navbar = () => {
         {/* Amazon-style search bar */}
         <form
           onSubmit={handleSearch}
-          className="hidden md:flex flex-1 max-w-xl items-stretch h-10 rounded-md overflow-hidden border-2 border-[hsl(var(--sm-gold))] shadow-sm"
+          className="hidden md:flex flex-1 max-w-xl items-stretch h-10 rounded-md border-2 border-[hsl(var(--sm-gold))] shadow-sm overflow-visible"
         >
           {/* Search category selector */}
           <div className="relative flex-shrink-0" ref={searchCatRef}>
             <button
               type="button"
               onClick={() => setSearchCatOpen(v => !v)}
-              className="flex items-center gap-1 h-full px-3 bg-muted text-foreground text-xs font-medium border-r border-border hover:bg-secondary transition-colors whitespace-nowrap"
+              className="flex items-center gap-1 h-full px-3 bg-muted text-foreground text-xs font-medium border-r border-border hover:bg-secondary transition-colors whitespace-nowrap rounded-l-[4px]"
             >
               <span className="max-w-[80px] truncate">{displaySearchCatLabel}</span>
-              <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              <ChevronDown className={`h-3 w-3 flex-shrink-0 transition-transform duration-200 ${searchCatOpen ? 'rotate-180' : ''}`} />
             </button>
             {searchCatOpen && (
-              <div className="absolute top-full left-0 mt-0.5 w-52 bg-popover border border-border rounded-md shadow-2xl z-[300] py-1 max-h-72 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-md shadow-2xl z-[400] py-1 max-h-72 overflow-y-auto">
                 {categoryOptions.map(opt => (
                   <button
                     key={opt.id}
@@ -188,7 +188,7 @@ const Navbar = () => {
           {/* Search button */}
           <button
             type="submit"
-            className="flex items-center justify-center px-4 bg-[hsl(var(--sm-gold))] hover:bg-[hsl(var(--sm-gold-dark))] transition-colors flex-shrink-0"
+            className="flex items-center justify-center px-4 bg-[hsl(var(--sm-gold))] hover:bg-[hsl(var(--sm-gold-dark))] transition-colors flex-shrink-0 rounded-r-[4px]"
           >
             <Search className="h-4 w-4 text-white" />
           </button>
