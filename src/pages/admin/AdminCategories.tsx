@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Plus, Pencil, Trash2, GripVertical, Package, Gift, Tag, Star, Briefcase,
   BookOpen, Pen, Globe, Award, Shirt, Coffee, Layers, Search, Eye, EyeOff,
-  ChevronUp, ChevronDown, Save, X, LayoutGrid, Sparkles,
+  ChevronUp, ChevronDown, Save, X, LayoutGrid, Sparkles, Languages,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -330,6 +330,7 @@ const AdminCategories = () => {
   const [editingId, setEditingId] = useState<string | 'new' | null>(null);
   const [form, setForm] = useState<CategoryForm>(emptyForm);
   const [searchQ, setSearchQ] = useState('');
+  const [bilingualPreview, setBilingualPreview] = useState(false);
 
   // Queries
   const { data: categories = [], isLoading } = useQuery({
@@ -484,16 +485,45 @@ const AdminCategories = () => {
 
         {/* ── Left: List ── */}
         <div className="space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search categories…"
-              value={searchQ}
-              onChange={e => setSearchQ(e.target.value)}
-              className="pl-9 h-9"
-            />
+          {/* Search + bilingual toggle toolbar */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search categories…"
+                value={searchQ}
+                onChange={e => setSearchQ(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setBilingualPreview(v => !v)}
+              title="Toggle EN/BN side-by-side preview"
+              className={cn(
+                'flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all shrink-0',
+                bilingualPreview
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-background text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+              )}
+            >
+              <Languages className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">EN / BN</span>
+            </button>
           </div>
+
+          {/* Bilingual preview legend */}
+          {bilingualPreview && (
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                <Languages className="w-3 h-3" /> Bilingual preview on
+              </span>
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <span className="inline-block w-2 h-2 rounded-full bg-primary/70" /> EN
+                <span className="inline-block w-2 h-2 rounded-full bg-accent/70 ml-1" /> BN
+              </span>
+            </div>
+          )}
 
           {/* List */}
           {isLoading ? (
@@ -553,18 +583,53 @@ const AdminCategories = () => {
                       <Icon className={cn('w-5 h-5', isSelected ? 'text-primary' : 'text-primary/80')} />
                     </div>
 
-                    {/* Names */}
+                    {/* Names — inline or side-by-side bilingual */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-sm">{cat.name_en}</p>
-                        {cat.name_bn && (
-                          <span className="text-xs text-muted-foreground">{cat.name_bn}</span>
-                        )}
-                      </div>
-                      {(cat.description_en) && (
-                        <p className="text-xs text-muted-foreground/70 truncate max-w-xs mt-0.5">
-                          {cat.description_en}
-                        </p>
+                      {bilingualPreview ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {/* EN column */}
+                          <div className="min-w-0 rounded-lg bg-primary/5 border border-primary/10 px-2.5 py-1.5">
+                            <p className="text-[9px] font-bold text-primary/60 uppercase tracking-widest mb-0.5">EN 🇬🇧</p>
+                            <p className="font-semibold text-sm leading-tight truncate text-foreground">
+                              {cat.name_en || <span className="text-muted-foreground italic text-xs">—</span>}
+                            </p>
+                            {cat.description_en && (
+                              <p className="text-[10px] text-muted-foreground truncate mt-0.5 leading-tight">
+                                {cat.description_en}
+                              </p>
+                            )}
+                          </div>
+                          {/* BN column */}
+                          <div className="min-w-0 rounded-lg bg-accent/5 border border-accent/10 px-2.5 py-1.5">
+                            <p className="text-[9px] font-bold text-accent-foreground/50 uppercase tracking-widest mb-0.5">BN 🇧🇩</p>
+                            <p className="font-semibold text-sm leading-tight truncate text-foreground">
+                              {cat.name_bn || (
+                                <span className="text-muted-foreground italic text-xs">↳ {cat.name_en}</span>
+                              )}
+                            </p>
+                            {(cat.description_bn || cat.description_en) && (
+                              <p className="text-[10px] text-muted-foreground truncate mt-0.5 leading-tight">
+                                {cat.description_bn || (
+                                  <span className="italic opacity-60">{cat.description_en}</span>
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm">{cat.name_en}</p>
+                            {cat.name_bn && (
+                              <span className="text-xs text-muted-foreground">{cat.name_bn}</span>
+                            )}
+                          </div>
+                          {cat.description_en && (
+                            <p className="text-xs text-muted-foreground/70 truncate max-w-xs mt-0.5">
+                              {cat.description_en}
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
 
