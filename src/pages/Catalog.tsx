@@ -26,12 +26,16 @@ import img11 from '@/assets/products/glassware.png';
 import img12 from '@/assets/products/product-12.png';
 
 interface Product {
+  id?: string;
   src: string;
   titleEn: string;
   titleBn: string;
   descEn: string;
   descBn: string;
+  /** category_id (UUID) when DB data, or slug when static */
   category: string;
+  categoryLabelEn?: string;
+  categoryLabelBn?: string;
   features?: string[];
 }
 
@@ -50,7 +54,7 @@ const staticProducts: Product[] = [
   { src: img12, titleEn: 'Premium Gift Hamper', titleBn: 'প্রিমিয়াম গিফট হ্যাম্পার', descEn: 'Curated luxury gift baskets featuring gourmet selections, wrapped with gold satin ribbon. Ideal for Eid, Pohela Boishakh, and corporate appreciation events.', descBn: 'গুর্মে সিলেকশন সমৃদ্ধ কিউরেটেড লাক্সারি গিফট বাস্কেট, সোনালী সাটিন রিবনে মোড়ানো।', category: 'corporate', features: ['Curated selection', 'Festival-ready', 'Custom branding'] },
 ];
 
-const categories = [
+const staticCategories = [
   { id: 'all', labelEn: 'All Products', labelBn: 'সকল পণ্য' },
   { id: 'corporate', labelEn: 'Corporate Gifts', labelBn: 'কর্পোরেট গিফট' },
   { id: 'souvenir', labelEn: 'Souvenirs', labelBn: 'স্যুভেনির' },
@@ -58,7 +62,7 @@ const categories = [
 ];
 
 const Catalog = () => {
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
   const { get } = useSiteSettings();
   const { addItem, items: basketItems, setIsOpen: openBasket } = useQuoteBasket();
   const whatsappNumber = (get('contact', 'whatsapp_number', '8801867666888') as string).replace(/[^0-9]/g, '') || '8801867666888';
@@ -99,13 +103,13 @@ const Catalog = () => {
     return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
   }, [lang, whatsappNumber]);
 
-  // Try DB products first
-  const { data: dbProducts = [] } = useQuery({
-    queryKey: ['catalog-products'],
+  // DB categories
+  const { data: dbCategories = [] } = useQuery({
+    queryKey: ['public-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(name_en, name_bn)')
+        .from('categories')
+        .select('id, name_en, name_bn')
         .eq('is_active', true)
         .order('sort_order');
       if (error) throw error;
@@ -114,23 +118,56 @@ const Catalog = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Try DB products first
+  const { data: dbProducts = [] } = useQuery({
+    queryKey: ['catalog-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(id, name_en, name_bn)')
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const useDbData = dbProducts.length > 0;
+
+  // Build category list: DB or static fallback
+  const categories = useMemo(() => {
+    const allOption = { id: 'all', labelEn: 'All Products', labelBn: 'সকল পণ্য' };
+    if (useDbData && dbCategories.length > 0) {
+      return [
+        allOption,
+        ...dbCategories.map(c => ({ id: c.id, labelEn: c.name_en, labelBn: c.name_bn || c.name_en })),
+      ];
+    }
+    return staticCategories;
+  }, [useDbData, dbCategories]);
+
   const products = useMemo(() => {
-    if (dbProducts.length > 0) {
+    if (useDbData) {
       return dbProducts.map(p => {
         const cat = (p as any).categories;
         return {
+          id: p.id,
           src: p.image_url || '',
           titleEn: p.name_en,
           titleBn: p.name_bn || p.name_en,
           descEn: p.description_en || '',
           descBn: p.description_bn || p.description_en || '',
-          category: cat?.name_en?.toLowerCase() || 'corporate',
+          // Use the actual category_id UUID for filtering
+          category: p.category_id || 'all',
+          categoryLabelEn: cat?.name_en || '',
+          categoryLabelBn: cat?.name_bn || cat?.name_en || '',
           features: [],
         } as Product;
       });
     }
     return staticProducts;
-  }, [dbProducts]);
+  }, [dbProducts, useDbData]);
 
   // Extract all unique features
   const allFeatures = useMemo(() => {
@@ -276,7 +313,7 @@ const Catalog = () => {
                         />
                         <div className="absolute top-4 left-4">
                           <span className="bg-primary/90 text-primary-foreground text-[11px] font-semibold px-3 py-1 rounded-full backdrop-blur-sm" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                            {categories.find(c => c.id === p.category)?.[lang === 'en' ? 'labelEn' : 'labelBn'] || p.category}
+                            {lang === 'en' ? (p.categoryLabelEn || categories.find(c => c.id === p.category)?.labelEn || p.category) : (p.categoryLabelBn || categories.find(c => c.id === p.category)?.labelBn || p.category)}
                           </span>
                         </div>
                       </div>
@@ -378,7 +415,7 @@ const Catalog = () => {
 
             <div className="p-8">
               <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {categories.find(c => c.id === selected.category)?.[lang === 'en' ? 'labelEn' : 'labelBn'] || selected.category}
+                {lang === 'en' ? (selected.categoryLabelEn || categories.find(c => c.id === selected.category)?.labelEn || selected.category) : (selected.categoryLabelBn || categories.find(c => c.id === selected.category)?.labelBn || selected.category)}
               </span>
 
               <h2 className="text-2xl md:text-3xl font-bold mb-4">{title(selected)}</h2>
