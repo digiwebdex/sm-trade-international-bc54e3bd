@@ -18,7 +18,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCatOpen, setMobileCatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<{ id: string; label: string } | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchCatOpen, setSearchCatOpen] = useState(false);
   const [navCatOpen, setNavCatOpen] = useState(false);
 
@@ -61,7 +61,8 @@ const Navbar = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000, // 30s — fast enough for admin edits to reflect
+    gcTime: 5 * 60 * 1000,
   });
 
   const allLabel = lang === 'en' ? 'All Categories' : 'সব ক্যাটাগরি';
@@ -72,17 +73,23 @@ const Navbar = () => {
       label: lang === 'en' ? c.name_en : (c.name_bn || c.name_en),
     })),
   ];
-  const displaySearchCatLabel = selectedCategory
-    ? (selectedCategory.label.length > 10 ? selectedCategory.label.slice(0, 10) + '…' : selectedCategory.label)
+
+  // Derive label reactively from id + current lang — never store label in state
+  const selectedCategoryLabel = selectedCategoryId
+    ? categoryOptions.find(o => o.id === selectedCategoryId)?.label ?? (lang === 'en' ? 'All' : 'সব')
     : (lang === 'en' ? 'All' : 'সব');
+
+  const displaySearchCatLabel = selectedCategoryLabel.length > 10
+    ? selectedCategoryLabel.slice(0, 10) + '…'
+    : selectedCategoryLabel;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     const params = new URLSearchParams();
     params.set('q', searchQuery.trim());
-    if (selectedCategory && selectedCategory.id !== 'all') {
-      params.set('category', selectedCategory.id);
+    if (selectedCategoryId && selectedCategoryId !== 'all') {
+      params.set('category', selectedCategoryId);
     }
     navigate(`/catalog?${params.toString()}`);
     setSearchQuery('');
@@ -153,11 +160,11 @@ const Navbar = () => {
                     key={opt.id}
                     type="button"
                     onClick={() => {
-                      setSelectedCategory(opt.id === 'all' ? null : opt);
+                      setSelectedCategoryId(opt.id === 'all' ? null : opt.id);
                       setSearchCatOpen(false);
                     }}
                     className={`w-full text-left px-4 py-2 text-sm hover:bg-accent/10 transition-colors ${
-                      (opt.id === 'all' && !selectedCategory) || selectedCategory?.id === opt.id
+                      (opt.id === 'all' && !selectedCategoryId) || selectedCategoryId === opt.id
                         ? 'text-[hsl(var(--sm-gold))] font-semibold bg-accent/5'
                         : 'text-foreground'
                     }`}
