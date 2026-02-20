@@ -26,6 +26,8 @@ const ProductDetail = () => {
   const { lang } = useLanguage();
   const { addItem } = useQuoteBasket();
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+  const [selectedDesign, setSelectedDesign] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   const { data: product, isLoading } = useQuery({
@@ -87,10 +89,42 @@ const ProductDetail = () => {
     enabled: !!product?.category_id,
   });
 
+  // Unique designs and colors from all variants
+  const uniqueDesigns = useMemo(() => {
+    const seen = new Set<string>();
+    return variants.filter(v => v.design_type && !seen.has(v.design_type) && seen.add(v.design_type));
+  }, [variants]);
+
+  const uniqueColors = useMemo(() => {
+    const seen = new Set<string>();
+    return variants.filter(v => v.color_hex && !seen.has(v.color_hex) && seen.add(v.color_hex));
+  }, [variants]);
+
+  // Resolve the active variant based on selected design + color combination
   const activeVariant = useMemo(() => {
-    if (!selectedVariant) return variants[0] || null;
-    return variants.find(v => v.id === selectedVariant) || variants[0] || null;
-  }, [variants, selectedVariant]);
+    if (selectedVariant) return variants.find(v => v.id === selectedVariant) || variants[0] || null;
+    if (selectedDesign && selectedColor) {
+      const match = variants.find(v => v.design_type === selectedDesign && v.color_hex === selectedColor);
+      if (match) return match;
+    }
+    if (selectedDesign) return variants.find(v => v.design_type === selectedDesign) || variants[0] || null;
+    if (selectedColor) return variants.find(v => v.color_hex === selectedColor) || variants[0] || null;
+    return variants[0] || null;
+  }, [variants, selectedVariant, selectedDesign, selectedColor]);
+
+  const handleDesignSelect = (designType: string) => {
+    setSelectedDesign(designType);
+    setSelectedVariant(null);
+    const match = variants.find(v => v.design_type === designType && (!selectedColor || v.color_hex === selectedColor));
+    if (match) setSelectedVariant(match.id);
+  };
+
+  const handleColorSelect = (colorHex: string) => {
+    setSelectedColor(colorHex);
+    setSelectedVariant(null);
+    const match = variants.find(v => v.color_hex === colorHex && (!selectedDesign || v.design_type === selectedDesign));
+    if (match) setSelectedVariant(match.id);
+  };
 
   const { data: variantImages = [] } = useQuery({
     queryKey: ['variant-images', activeVariant?.id],
@@ -273,54 +307,83 @@ const ProductDetail = () => {
               <p className="text-muted-foreground leading-relaxed text-base">{desc}</p>
             )}
 
-            {/* Color variants */}
-            {hasColors && (
+            {/* Design selector */}
+            {uniqueDesigns.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">
-                  {lang === 'en' ? 'Color' : 'রঙ'}:
-                  {activeVariant && (
-                    <span className="font-normal text-muted-foreground ml-2">
-                      {lang === 'en' ? activeVariant.variant_label_en : (activeVariant.variant_label_bn || activeVariant.variant_label_en)}
+                  {lang === 'en' ? 'Design' : 'ডিজাইন'}:
+                  {activeVariant?.design_type && (
+                    <span className="font-normal text-muted-foreground ml-2 text-xs">
+                      Design {activeVariant.design_type}
                     </span>
                   )}
                 </h3>
                 <div className="flex gap-2 flex-wrap">
-                  {variants.filter(v => v.color_hex).map(v => (
-                    <button
-                      key={v.id}
-                      onClick={() => setSelectedVariant(v.id)}
-                      title={lang === 'en' ? v.variant_label_en : (v.variant_label_bn || v.variant_label_en)}
-                      className={`w-9 h-9 rounded-full border-2 transition-all ${
-                        (selectedVariant || variants[0]?.id) === v.id
-                          ? 'border-[hsl(var(--sm-gold))] ring-2 ring-[hsl(var(--sm-gold))]/30 scale-110'
-                          : 'border-border hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: v.color_hex || '#ccc' }}
-                    />
-                  ))}
+                  {uniqueDesigns.map(v => {
+                    const isActive = activeVariant?.design_type === v.design_type;
+                    return (
+                      <button
+                        key={v.design_type}
+                        onClick={() => handleDesignSelect(v.design_type!)}
+                        className={`px-3 py-1.5 rounded-lg text-xs border-2 transition-all font-medium ${
+                          isActive
+                            ? 'border-[hsl(var(--sm-gold))] bg-[hsl(var(--sm-gold))]/10 text-foreground'
+                            : 'border-border bg-background text-muted-foreground hover:border-foreground/30'
+                        }`}
+                      >
+                        Design {v.design_type}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Design variants */}
-            {hasDesigns && (
+            {/* Color swatch selector */}
+            {uniqueColors.length > 0 && (
               <div className="space-y-2">
-                <h3 className="font-semibold text-sm">{lang === 'en' ? 'Design' : 'ডিজাইন'}</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {variants.filter(v => v.design_type).map(v => (
-                    <button
-                      key={v.id}
-                      onClick={() => setSelectedVariant(v.id)}
-                      className={`px-4 py-2 rounded-lg text-sm border transition-all ${
-                        (selectedVariant || variants[0]?.id) === v.id
-                          ? 'border-[hsl(var(--sm-gold))] bg-[hsl(var(--sm-gold))]/10 text-foreground font-medium'
-                          : 'border-border bg-background text-muted-foreground hover:border-foreground/30'
-                      }`}
-                    >
-                      {lang === 'en' ? v.variant_label_en : (v.variant_label_bn || v.variant_label_en)}
-                    </button>
-                  ))}
+                <h3 className="font-semibold text-sm">
+                  {lang === 'en' ? 'Color' : 'রঙ'}:
+                  {activeVariant?.color_hex && (
+                    <span className="font-normal text-muted-foreground ml-2">
+                      {(activeVariant as any).color_name || activeVariant.color_hex}
+                    </span>
+                  )}
+                </h3>
+                <div className="flex gap-2.5 flex-wrap items-center">
+                  {uniqueColors.map(v => {
+                    const isActive = activeVariant?.color_hex === v.color_hex;
+                    return (
+                      <button
+                        key={v.color_hex}
+                        onClick={() => handleColorSelect(v.color_hex!)}
+                        title={(v as any).color_name || v.color_hex!}
+                        className={`relative w-9 h-9 rounded-full border-2 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          isActive
+                            ? 'border-[hsl(var(--sm-gold))] ring-2 ring-[hsl(var(--sm-gold))]/40 scale-110'
+                            : 'border-border/60'
+                        }`}
+                        style={{ backgroundColor: v.color_hex || '#ccc' }}
+                      >
+                        {isActive && (
+                          <span className="absolute inset-0 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+
+            {/* Active SKU display */}
+            {activeVariant && (activeVariant as any).sku && (
+              <div className="flex items-center gap-2 py-2 px-3 bg-muted/60 rounded-lg border border-border/40">
+                <span className="text-xs text-muted-foreground">{lang === 'en' ? 'SKU' : 'পণ্য কোড'}:</span>
+                <code className="text-xs font-mono text-foreground font-semibold">{(activeVariant as any).sku}</code>
               </div>
             )}
 

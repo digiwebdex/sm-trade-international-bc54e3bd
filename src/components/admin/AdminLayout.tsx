@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard, Package, FolderOpen, Image, Users, Mail,
   Settings, LogOut, Menu, X, Upload, Home, Cog, Layers, SlidersHorizontal,
-  Search, ChevronDown, Tag
+  Search, ChevronDown, Tag, Globe, HardDrive, Info, Wand2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -16,14 +16,18 @@ const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
   { label: 'Hero Slides', icon: SlidersHorizontal, path: '/admin/hero-slides' },
   { label: 'Home Sections', icon: Home, path: '/admin/home-sections' },
+  { label: 'About Page', icon: Info, path: '/admin/about' },
   { label: 'Services', icon: Cog, path: '/admin/services' },
   { label: 'Process', icon: Layers, path: '/admin/process' },
   { label: 'Products', icon: Package, path: '/admin/products' },
   { label: 'Categories', icon: FolderOpen, path: '/admin/categories' },
+  { label: 'Variants', icon: Wand2, path: '/admin/variants' },
   { label: 'Gallery', icon: Image, path: '/admin/gallery' },
   { label: 'Clients', icon: Users, path: '/admin/clients' },
   { label: 'Messages', icon: Mail, path: '/admin/messages' },
+  { label: 'SEO', icon: Globe, path: '/admin/seo' },
   { label: 'Site Settings', icon: Settings, path: '/admin/settings' },
+  { label: 'Backup', icon: HardDrive, path: '/admin/backup' },
   { label: 'Import Data', icon: Upload, path: '/admin/import' },
 ];
 

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      about_page: {
+        Row: {
+          content_bn: string
+          content_en: string
+          field_key: string
+          id: string
+          image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          content_bn?: string
+          content_en?: string
+          field_key: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content_bn?: string
+          content_en?: string
+          field_key?: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -252,6 +279,7 @@ export type Database = {
       product_variants: {
         Row: {
           color_hex: string | null
+          color_name: string | null
           created_at: string
           design_type: string | null
           id: string
@@ -259,6 +287,7 @@ export type Database = {
           is_active: boolean
           min_quantity: number
           product_id: string
+          sku: string | null
           sort_order: number
           unit_price: number
           updated_at: string
@@ -267,6 +296,7 @@ export type Database = {
         }
         Insert: {
           color_hex?: string | null
+          color_name?: string | null
           created_at?: string
           design_type?: string | null
           id?: string
@@ -274,6 +304,7 @@ export type Database = {
           is_active?: boolean
           min_quantity?: number
           product_id: string
+          sku?: string | null
           sort_order?: number
           unit_price?: number
           updated_at?: string
@@ -282,6 +313,7 @@ export type Database = {
         }
         Update: {
           color_hex?: string | null
+          color_name?: string | null
           created_at?: string
           design_type?: string | null
           id?: string
@@ -289,6 +321,7 @@ export type Database = {
           is_active?: boolean
           min_quantity?: number
           product_id?: string
+          sku?: string | null
           sort_order?: number
           unit_price?: number
           updated_at?: string
@@ -396,6 +429,45 @@ export type Database = {
           product_interest?: string | null
           quantity?: number | null
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_meta: {
+        Row: {
+          canonical_url: string | null
+          id: string
+          keywords: string
+          meta_description_bn: string
+          meta_description_en: string
+          meta_title_bn: string
+          meta_title_en: string
+          og_image_url: string | null
+          page_slug: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_url?: string | null
+          id?: string
+          keywords?: string
+          meta_description_bn?: string
+          meta_description_en?: string
+          meta_title_bn?: string
+          meta_title_en?: string
+          og_image_url?: string | null
+          page_slug: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string | null
+          id?: string
+          keywords?: string
+          meta_description_bn?: string
+          meta_description_en?: string
+          meta_title_bn?: string
+          meta_title_en?: string
+          og_image_url?: string | null
+          page_slug?: string
           updated_at?: string
         }
         Relationships: []
