@@ -1,110 +1,84 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
-import OptimizedImage from '@/components/OptimizedImage';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronLeft, ChevronRight, ZoomIn, Monitor, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/** Build a small optimized thumbnail URL for Supabase images */
-function thumbUrl(src: string, width = 160): string {
-  if (!src.includes('supabase.co/storage')) return src;
-  const url = new URL(src);
-  url.searchParams.set('width', String(width));
-  url.searchParams.set('quality', '70');
-  url.searchParams.set('format', 'webp');
-  return url.toString();
-}
+export type ImageType = 'main' | 'front' | 'back' | 'left' | 'right' | 'gallery';
 
-interface VariantThumb {
-  id: string;
-  image_url: string | null;
-  variant_label_en: string;
-  color_hex: string | null;
-}
-
-interface GalleryImage {
+export interface TypedImage {
+  id?: string;
   url: string;
+  image_type?: ImageType;
   label?: string;
-  colorHex?: string | null;
-  variantId?: string;
+  variant_id?: string | null;
 }
 
 interface ProductImageGalleryProps {
-  mainImage: string;
-  productImages: { id: string; image_url: string; sort_order: number }[];
-  variantImages: { id: string; image_url: string; sort_order: number }[];
-  activeVariantImage?: string | null;
-  variants?: VariantThumb[];
+  images: TypedImage[];          // All product + variant images combined
   selectedVariantId?: string | null;
-  onVariantSelect?: (id: string | null) => void;
   title: string;
 }
 
+const TYPE_LABELS: Record<ImageType, string> = {
+  main: 'Main',
+  front: 'Front',
+  back: 'Back',
+  left: 'Left',
+  right: 'Right',
+  gallery: 'Gallery',
+};
+
+function thumbUrl(src: string, width = 160): string {
+  if (!src || !src.includes('supabase.co/storage')) return src;
+  try {
+    const url = new URL(src);
+    url.searchParams.set('width', String(width));
+    url.searchParams.set('quality', '75');
+    url.searchParams.set('format', 'webp');
+    return url.toString();
+  } catch {
+    return src;
+  }
+}
+
 const ProductImageGallery = ({
-  mainImage,
-  productImages,
-  variantImages,
-  activeVariantImage,
-  variants = [],
+  images,
   selectedVariantId,
-  onVariantSelect,
   title,
 }: ProductImageGalleryProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [fade, setFade] = useState(true);
+  const touchStart = useRef<number | null>(null);
 
-  // Build gallery images with metadata
-  const allImages = useMemo(() => {
-    const images: GalleryImage[] = [];
-    const seen = new Set<string>();
-
-    const add = (url: string, label?: string, colorHex?: string | null, variantId?: string) => {
-      if (!url || seen.has(url)) return;
-      seen.add(url);
-      images.push({ url, label, colorHex, variantId });
-    };
-
-    // Active variant image first
-    if (activeVariantImage) {
-      const v = variants.find(v => v.id === selectedVariantId);
-      add(activeVariantImage, v?.variant_label_en, v?.color_hex, v?.id);
-    }
-
-    // Variant gallery images
-    variantImages.forEach(img => add(img.image_url));
-
-    // Other variant images
-    variants.forEach(v => {
-      if (v.image_url) {
-        add(v.image_url, v.variant_label_en, v.color_hex, v.id);
-      }
-    });
-
-    // Product gallery images
-    productImages.forEach(img => add(img.image_url));
-
-    // Main product image
-    if (mainImage) add(mainImage, 'Default');
-
-    return images.length > 0 ? images : [{ url: mainImage || '', label: 'Default' }];
-  }, [mainImage, productImages, variantImages, activeVariantImage, variants, selectedVariantId]);
-
-  // Reset to first image when variant changes
+  // Reset to first when variant changes — prefer variant-specific images
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [selectedVariantId]);
+    setFade(false);
+    const timer = setTimeout(() => {
+      if (selectedVariantId) {
+        const variantIdx = images.findIndex(img => img.variant_id === selectedVariantId);
+        setSelectedIndex(variantIdx >= 0 ? variantIdx : 0);
+      } else {
+        setSelectedIndex(0);
+      }
+      setFade(true);
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [selectedVariantId, images]);
 
-  const safeIndex = selectedIndex >= allImages.length ? 0 : selectedIndex;
-  const currentImage = allImages[safeIndex];
+  const selectIndex = useCallback((idx: number) => {
+    if (idx === selectedIndex) return;
+    setFade(false);
+    setTimeout(() => {
+      setSelectedIndex(idx);
+      setFade(true);
+    }, 100);
+  }, [selectedIndex]);
 
-  const goNext = useCallback(() => {
-    setSelectedIndex(prev => (prev + 1) % allImages.length);
-  }, [allImages.length]);
+  const goNext = useCallback(() => selectIndex((selectedIndex + 1) % images.length), [selectedIndex, images.length, selectIndex]);
+  const goPrev = useCallback(() => selectIndex((selectedIndex - 1 + images.length) % images.length), [selectedIndex, images.length, selectIndex]);
 
-  const goPrev = useCallback(() => {
-    setSelectedIndex(prev => (prev - 1 + allImages.length) % allImages.length);
-  }, [allImages.length]);
-
-  // Keyboard navigation
+  // Keyboard nav
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') goNext();
@@ -114,100 +88,126 @@ const ProductImageGallery = ({
     return () => window.removeEventListener('keydown', handler);
   }, [goNext, goPrev]);
 
-  const handleZoomMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isZoomed) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPosition({ x, y });
+    setZoomPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
   };
 
-  const handleThumbClick = (idx: number) => {
-    setSelectedIndex(idx);
-    const img = allImages[idx];
-    if (img.variantId && onVariantSelect) {
-      onVariantSelect(img.variantId);
-    }
+  // Touch swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStart.current = e.touches[0].clientX;
   };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart.current === null) return;
+    const diff = touchStart.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? goNext() : goPrev();
+    touchStart.current = null;
+  };
+
+  if (images.length === 0) {
+    return (
+      <div className="aspect-square rounded-2xl bg-muted border border-border/30 flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <Monitor className="h-12 w-12 mx-auto mb-2 opacity-20" />
+          <p className="text-sm">{title}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const safeIdx = selectedIndex >= images.length ? 0 : selectedIndex;
+  const current = images[safeIdx];
 
   return (
-    <div className="space-y-3">
-      {/* Main display with carousel controls */}
+    <div className="space-y-3 select-none">
+      {/* Main image */}
       <div
-        className="relative group aspect-square rounded-2xl overflow-hidden bg-white border border-border/30 shadow-sm cursor-crosshair"
+        className="relative group aspect-square rounded-2xl overflow-hidden bg-white border border-border/20 shadow-md cursor-crosshair"
         onMouseEnter={() => setIsZoomed(true)}
-        onMouseLeave={() => setIsZoomed(false)}
-        onMouseMove={handleZoomMove}
+        onMouseLeave={() => { setIsZoomed(false); setZoomPos({ x: 50, y: 50 }); }}
+        onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        {currentImage.url ? (
+        {current.url ? (
           <div className="w-full h-full overflow-hidden">
-            <OptimizedImage
-              src={currentImage.url}
-              alt={title}
+            <img
+              src={current.url}
+              alt={current.label || title}
               className={cn(
-                'w-full h-full object-contain p-4 transition-transform duration-300',
-                isZoomed && 'scale-[2]'
+                'w-full h-full object-contain p-4 transition-all duration-300',
+                isZoomed ? 'scale-[2.2]' : 'scale-100',
+                fade ? 'opacity-100' : 'opacity-0',
               )}
-              wrapperClassName="w-full h-full"
-              sizes="(min-width: 768px) 50vw, 100vw"
-              style={isZoomed ? {
-                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
-              } : undefined}
+              style={isZoomed ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : undefined}
+              loading="eager"
+              decoding="async"
             />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            {title}
+            <Square className="h-16 w-16 opacity-10" />
           </div>
         )}
 
-        {/* Navigation arrows */}
-        {allImages.length > 1 && (
+        {/* Prev / Next */}
+        {images.length > 1 && (
           <>
             <button
-              onClick={(e) => { e.stopPropagation(); goPrev(); }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-background shadow-sm"
-              aria-label="Previous image"
+              onClick={e => { e.stopPropagation(); goPrev(); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
+              aria-label="Previous"
             >
-              <ChevronLeft className="h-5 w-5 text-foreground" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); goNext(); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-background shadow-sm"
-              aria-label="Next image"
+              onClick={e => { e.stopPropagation(); goNext(); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/80 backdrop-blur border border-border/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
+              aria-label="Next"
             >
-              <ChevronRight className="h-5 w-5 text-foreground" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </>
         )}
 
-        {/* Image counter */}
-        {allImages.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {safeIndex + 1} / {allImages.length}
-          </div>
+        {/* Image type badge */}
+        {current.image_type && current.image_type !== 'main' && (
+          <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-semibold uppercase tracking-wider border border-border/40">
+            {TYPE_LABELS[current.image_type] || current.image_type}
+          </span>
         )}
 
         {/* Zoom hint */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200">
-          <ZoomIn className="h-5 w-5 text-foreground" />
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-50 transition-opacity">
+          <ZoomIn className="h-4 w-4" />
         </div>
+
+        {/* Counter */}
+        {images.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-background/70 backdrop-blur text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            {safeIdx + 1} / {images.length}
+          </div>
+        )}
       </div>
 
-      {/* Thumbnail strip with variant indicators */}
-      {allImages.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-          {allImages.map((img, idx) => (
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin snap-x">
+          {images.map((img, idx) => (
             <button
               key={`${img.url}-${idx}`}
-              onClick={() => handleThumbClick(idx)}
+              onClick={() => selectIndex(idx)}
               className={cn(
-                'shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all relative group/thumb',
-                safeIndex === idx
-                  ? 'border-[hsl(var(--sm-gold))] ring-1 ring-[hsl(var(--sm-gold))]/30 scale-105'
-                  : 'border-border/30 hover:border-border hover:scale-105'
+                'shrink-0 snap-start relative w-[72px] h-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200',
+                safeIdx === idx
+                  ? 'border-[hsl(var(--sm-gold))] ring-2 ring-[hsl(var(--sm-gold))]/30 scale-105 shadow-md'
+                  : 'border-border/30 hover:border-border hover:scale-[1.03]',
               )}
-              title={img.label}
+              title={img.image_type ? TYPE_LABELS[img.image_type] : img.label}
             >
               <img
                 src={thumbUrl(img.url)}
@@ -215,15 +215,14 @@ const ProductImageGallery = ({
                 className="w-full h-full object-cover"
                 loading="lazy"
                 decoding="async"
-                width={64}
-                height={64}
+                width={72}
+                height={72}
               />
-              {/* Color dot indicator */}
-              {img.colorHex && (
-                <span
-                  className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border border-white shadow-sm"
-                  style={{ backgroundColor: img.colorHex }}
-                />
+              {/* Image type label */}
+              {img.image_type && (
+                <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[8px] font-bold uppercase tracking-wide text-center leading-4">
+                  {TYPE_LABELS[img.image_type] || img.image_type}
+                </span>
               )}
             </button>
           ))}

@@ -216,23 +216,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_type: string | null
           image_url: string
           product_id: string
           sort_order: number
+          variant_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          image_type?: string | null
           image_url: string
           product_id: string
           sort_order?: number
+          variant_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          image_type?: string | null
           image_url?: string
           product_id?: string
           sort_order?: number
+          variant_id?: string | null
         }
         Relationships: [
           {
@@ -240,6 +246,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_images_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
             referencedColumns: ["id"]
           },
         ]

@@ -6,26 +6,43 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, ImageIcon, GripVertical, Expand } from 'lucide-react';
+import { Plus, Pencil, Trash2, ImageIcon, Expand, Images } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import BulkUploadZone, { type FileItem } from '@/components/admin/BulkUploadZone';
 import GalleryLightbox from '@/components/gallery/GalleryLightbox';
+import ProductImageManager from '@/components/admin/ProductImageManager';
 import { cn } from '@/lib/utils';
+
+const PRESET_COLORS = [
+  { name: 'Black', hex: '#000000' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Navy Blue', hex: '#1E3A8A' },
+  { name: 'Royal Blue', hex: '#2563EB' },
+  { name: 'Brown', hex: '#6B4226' },
+  { name: 'Burgundy', hex: '#800020' },
+  { name: 'Dark Green', hex: '#166534' },
+  { name: 'Gray', hex: '#6B7280' },
+  { name: 'Gold', hex: '#D97706' },
+  { name: 'Red', hex: '#DC2626' },
+];
 
 interface VariantForm {
   variant_label_en: string;
   variant_label_bn: string;
   color_hex: string;
+  color_name: string;
   design_type: string;
   unit_price: number;
   min_quantity: number;
+  stock: number;
   image_url: string;
   is_active: boolean;
 }
 
 const emptyVariantForm: VariantForm = {
   variant_label_en: '', variant_label_bn: '', color_hex: '',
-  design_type: '', unit_price: 0, min_quantity: 1, image_url: '', is_active: true,
+  color_name: '', design_type: '', unit_price: 0, min_quantity: 1,
+  stock: 999, image_url: '', is_active: true,
 };
 
 interface VariantManagerProps {
@@ -73,14 +90,18 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = {
-        ...form,
+      const payload: any = {
+        variant_label_en: form.variant_label_en,
+        variant_label_bn: form.variant_label_bn,
         product_id: productId,
         unit_price: Number(form.unit_price) || 0,
         min_quantity: Number(form.min_quantity) || 1,
+        stock: Number(form.stock) || 999,
         color_hex: form.color_hex || null,
+        color_name: form.color_name || null,
         design_type: form.design_type || null,
         image_url: form.image_url || null,
+        is_active: form.is_active,
       };
       if (editId) {
         const { error } = await supabase.from('product_variants').update(payload).eq('id', editId);
@@ -132,9 +153,11 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
         variant_label_en: v.variant_label_en,
         variant_label_bn: v.variant_label_bn,
         color_hex: v.color_hex || '',
+        color_name: (v as any).color_name || '',
         design_type: v.design_type || '',
         unit_price: v.unit_price,
         min_quantity: v.min_quantity,
+        stock: (v as any).stock ?? 999,
         image_url: v.image_url || '',
         is_active: v.is_active,
       });
@@ -292,42 +315,76 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
                 <Input value={form.variant_label_bn} onChange={e => setForm(f => ({ ...f, variant_label_bn: e.target.value }))} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium">Color Hex</label>
-                <div className="flex gap-2">
-                  <Input
-                    value={form.color_hex}
-                    onChange={e => setForm(f => ({ ...f, color_hex: e.target.value }))}
-                    placeholder="#000000"
-                    className="flex-1"
+
+            {/* Color section */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Color</label>
+              {/* Preset swatches */}
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_COLORS.map(c => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    title={c.name}
+                    onClick={() => setForm(f => ({ ...f, color_hex: c.hex, color_name: c.name }))}
+                    className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${form.color_hex === c.hex ? 'border-foreground ring-1 ring-foreground scale-110' : 'border-border/50'}`}
+                    style={{ backgroundColor: c.hex }}
                   />
-                  {form.color_hex && (
-                    <span className="w-9 h-9 rounded-md border shrink-0" style={{ backgroundColor: form.color_hex }} />
-                  )}
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-muted-foreground">Color Name</label>
+                  <Input
+                    value={form.color_name}
+                    onChange={e => setForm(f => ({ ...f, color_name: e.target.value }))}
+                    placeholder="e.g. Navy Blue"
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground">Hex Code</label>
+                  <div className="flex gap-1.5">
+                    <Input
+                      value={form.color_hex}
+                      onChange={e => setForm(f => ({ ...f, color_hex: e.target.value }))}
+                      placeholder="#000000"
+                      className="flex-1 text-sm font-mono"
+                    />
+                    {form.color_hex && (
+                      <span className="w-9 h-9 rounded-md border shrink-0" style={{ backgroundColor: form.color_hex }} />
+                    )}
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className="text-xs font-medium">Design Type</label>
-                <Input value={form.design_type} onChange={e => setForm(f => ({ ...f, design_type: e.target.value }))} placeholder="e.g. Dotted" />
-              </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            <div>
+              <label className="text-xs font-medium">Design Type</label>
+              <Input value={form.design_type} onChange={e => setForm(f => ({ ...f, design_type: e.target.value }))} placeholder="e.g. Minimal Logo, Embossed" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-medium">Unit Price (৳)</label>
                 <Input type="number" min={0} step={0.01} value={form.unit_price} onChange={e => setForm(f => ({ ...f, unit_price: Number(e.target.value) }))} />
               </div>
               <div>
-                <label className="text-xs font-medium">Min Quantity</label>
+                <label className="text-xs font-medium">Min Qty</label>
                 <Input type="number" min={1} value={form.min_quantity} onChange={e => setForm(f => ({ ...f, min_quantity: Number(e.target.value) }))} />
               </div>
+              <div>
+                <label className="text-xs font-medium">Stock</label>
+                <Input type="number" min={0} value={form.stock} onChange={e => setForm(f => ({ ...f, stock: Number(e.target.value) }))} />
+              </div>
             </div>
+
             {/* Main variant image */}
             <div>
-              <label className="text-xs font-medium">Variant Image</label>
+              <label className="text-xs font-medium">Variant Main Image</label>
               {form.image_url ? (
                 <div className="relative mt-1">
-                  <img src={form.image_url} alt="Variant" className="w-full h-32 object-contain rounded-lg border bg-muted" />
+                  <img src={form.image_url} alt="Variant" className="w-full h-28 object-contain rounded-lg border bg-muted" />
                   <input type="file" accept="image/*" className="hidden" id="variant-img-input"
                     onChange={e => { if (e.target.files?.[0]) handleMainImageUpload(e.target.files[0]); }} />
                   <Button type="button" size="sm" variant="secondary" className="absolute bottom-1 right-1"
@@ -345,6 +402,7 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
                 </>
               )}
             </div>
+
             <div className="flex items-center gap-2">
               <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
               <label className="text-xs">Active</label>
@@ -356,6 +414,13 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
               </Button>
             </div>
           </form>
+
+          {/* Variant-specific 5-view images (only when editing) */}
+          {editId && (
+            <div className="border-t border-border pt-4 mt-2">
+              <ProductImageManager productId={productId} variantId={editId} />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
