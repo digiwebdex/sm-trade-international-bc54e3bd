@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ScrollToTop from "@/components/ScrollToTop";
 import { QuoteBasketProvider } from "@/contexts/QuoteBasketContext";
 import QuoteBasketDrawer from "@/components/QuoteBasketDrawer";
 import Index from "./pages/Index";
@@ -65,6 +66,7 @@ const App = () => (
     <TooltipProvider>
       <LanguageProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <QuoteBasketProvider>
             <Toaster />
