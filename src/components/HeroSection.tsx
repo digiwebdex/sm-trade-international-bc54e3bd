@@ -19,6 +19,8 @@ import glassware from '@/assets/products/glassware.png';
 import product8 from '@/assets/products/product-8.png';
 import product10 from '@/assets/products/product-10.png';
 import bpatcBuilding from '@/assets/products/bpatc-building.png';
+import tunnelSouvenir from '@/assets/products/tunnel-souvenir.png';
+import product9 from '@/assets/products/product-9.png';
 
 const fallbackItems = [
   { img: product3, label: 'Crystal Awards', id: '' },
@@ -27,6 +29,8 @@ const fallbackItems = [
   { img: product8, label: 'Gift Sets', id: '' },
   { img: product10, label: 'Premium Souvenirs', id: '' },
   { img: bpatcBuilding, label: 'Model Replicas', id: '' },
+  { img: tunnelSouvenir, label: 'Tunnel Souvenirs', id: '' },
+  { img: product9, label: 'Executive Pens', id: '' },
 ];
 
 const stats = [
