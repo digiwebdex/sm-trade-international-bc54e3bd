@@ -88,7 +88,7 @@ const OptimizedImage = ({
   return (
     <div ref={imgRef} className={cn('relative overflow-hidden', wrapperClassName)}>
       {inView && (
-        <picture>
+        <picture className="w-full h-full block">
           {/* WebP source for Supabase images */}
           {webpSrc && srcSet && (
             <source
