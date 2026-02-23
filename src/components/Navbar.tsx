@@ -102,9 +102,12 @@ const Navbar = () => {
     }
   };
 
-  const links = [
+  const topLinks = [
     { key: 'nav.home', href: '#home', label: 'Home' },
     { key: 'nav.about', href: '/about', isRoute: true, label: 'About' },
+  ];
+
+  const links = [
     { key: 'nav.services', href: '#services', label: 'Services' },
     { key: 'nav.products', href: '#products', label: 'Products' },
     { key: 'nav.gallery', href: '/gallery', isRoute: true, label: 'Gallery' },
@@ -190,6 +193,29 @@ const Navbar = () => {
           </button>
         </form>
 
+        {/* Home & About links — desktop, after search bar */}
+        <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+          {topLinks.map(l =>
+            (l as any).isRoute ? (
+              <Link
+                key={l.key}
+                to={l.href}
+                className="px-3 py-1.5 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors whitespace-nowrap"
+              >
+                {t(l.key)}
+              </Link>
+            ) : (
+              <a
+                key={l.key}
+                href={resolveHref(l.href)}
+                onMouseEnter={!isHome ? prefetchHome : undefined}
+                className="px-3 py-1.5 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors whitespace-nowrap"
+              >
+                {t(l.key)}
+              </a>
+            )
+          )}
+        </div>
 
         {/* Mobile menu toggle */}
         <button className="md:hidden ml-auto p-1" onClick={() => setMobileOpen(!mobileOpen)}>
