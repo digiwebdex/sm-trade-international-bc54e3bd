@@ -102,12 +102,9 @@ const Navbar = () => {
     }
   };
 
-  const topLinks = [
+  const allLinks = [
     { key: 'nav.home', href: '#home', label: 'Home' },
     { key: 'nav.about', href: '/about', isRoute: true, label: 'About' },
-  ];
-
-  const links = [
     { key: 'nav.services', href: '#services', label: 'Services' },
     { key: 'nav.products', href: '#products', label: 'Products' },
     { key: 'nav.gallery', href: '/gallery', isRoute: true, label: 'Gallery' },
@@ -193,41 +190,17 @@ const Navbar = () => {
           </button>
         </form>
 
-        {/* Home & About links — desktop, after search bar */}
-        <div className="hidden md:flex items-center gap-1 flex-shrink-0">
-          {topLinks.map(l =>
-            (l as any).isRoute ? (
-              <Link
-                key={l.key}
-                to={l.href}
-                className="px-3 py-1.5 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors whitespace-nowrap"
-              >
-                {t(l.key)}
-              </Link>
-            ) : (
-              <a
-                key={l.key}
-                href={resolveHref(l.href)}
-                onMouseEnter={!isHome ? prefetchHome : undefined}
-                className="px-3 py-1.5 text-sm font-medium text-foreground/70 hover:text-foreground transition-colors whitespace-nowrap"
-              >
-                {t(l.key)}
-              </a>
-            )
-          )}
-        </div>
-
         {/* Mobile menu toggle */}
         <button className="md:hidden ml-auto p-1" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* ── Row 2: Nav links (desktop only) ── */}
+      {/* ── Row 2: All nav links (desktop only) ── */}
       <div className="hidden md:block border-t border-border/30 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-0 justify-end">
-            {links.map(l =>
+            {allLinks.map(l =>
               (l as any).isRoute ? (
                 <Link
                   key={l.key}
@@ -342,7 +315,7 @@ const Navbar = () => {
       {/* ── Mobile menu ── */}
       {mobileOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 pb-4">
-          {links.map(l =>
+          {allLinks.map(l =>
             (l as any).isRoute ? (
               <Link
                 key={l.key}
