@@ -239,7 +239,7 @@ const HeroSection = () => {
                         style={{ width: absOff === 0 ? 220 : 180 }}
                         onClick={() => handleProductClick(item, i)}
                       >
-                        <div className="bg-white p-3">
+                        <div className="bg-white p-3 flex items-center justify-center" style={{ minHeight: 192 }}>
                           <OptimizedImage
                             src={item.img}
                             alt={item.label}
@@ -247,6 +247,7 @@ const HeroSection = () => {
                             sizes="220px"
                             priority={absOff <= 1}
                             blurPlaceholder={false}
+                            style={{ minWidth: '60%', minHeight: '60%' }}
                           />
                         </div>
                       </div>
