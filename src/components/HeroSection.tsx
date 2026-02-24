@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef, TouchEvent } from 'react';
+import { useState, useEffect, useRef, TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ArrowRight, Pause, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import OptimizedImage from '@/components/OptimizedImage';
 import heroBg from '@/assets/hero-bg.jpg';
 
@@ -40,16 +40,23 @@ const stats = [
   { value: '50+', label: 'Countries' },
 ];
 
-const SPEED = 3200;
-const TRANSITION = 'transform 0.75s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease';
+// Predefined scattered positions for 8 items in a boutique floating grid
+const GRID_POSITIONS = [
+  { x: '5%',  y: '2%',  size: 130, delay: 0 },
+  { x: '55%', y: '0%',  size: 120, delay: 0.4 },
+  { x: '28%', y: '8%',  size: 155, delay: 0.2 },
+  { x: '72%', y: '15%', size: 115, delay: 0.6 },
+  { x: '0%',  y: '48%', size: 120, delay: 0.3 },
+  { x: '60%', y: '50%', size: 140, delay: 0.1 },
+  { x: '22%', y: '60%', size: 110, delay: 0.5 },
+  { x: '78%', y: '58%', size: 125, delay: 0.7 },
+];
 
 const HeroSection = () => {
   const { t, lang } = useLanguage();
   const { get } = useSiteSettings();
   const navigate = useNavigate();
-  const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const touchStartX = useRef(0);
   const touchDelta = useRef(0);
   const isFirstLoad = !hasAnimated;
@@ -91,60 +98,17 @@ const HeroSection = () => {
       }))
     : fallbackItems;
 
-  const len = carouselItems.length;
-
-  const next = useCallback(() => setCurrent(i => (i + 1) % len), [len]);
-  const prev = useCallback(() => setCurrent(i => (i - 1 + len) % len), [len]);
-
-  useEffect(() => {
-    if (paused) return;
-    timerRef.current = setInterval(next, SPEED);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [next, paused]);
-
-  const getOffset = (index: number) => {
-    let diff = index - current;
-    if (diff > len / 2) diff -= len;
-    if (diff < -len / 2) diff += len;
-    return diff;
-  };
-
-  // Coverflow fan interpolation
-  const getTransform = (offset: number) => {
-    const abs = Math.abs(offset);
-    const sign = offset > 0 ? 1 : offset < 0 ? -1 : 0;
-    // Fan arc: center card flat, side cards tilt away
-    const tX = abs === 0 ? 0 : sign * (140 + (abs - 1) * 120);
-    const tZ = abs === 0 ? 100 : abs === 1 ? 0 : -60;
-    const rotY = abs === 0 ? 0 : sign * -(45 + (abs - 1) * 10);
-    const scale = abs === 0 ? 1 : abs === 1 ? 0.82 : 0.65;
-    return { tX, tZ, rotY, scale };
-  };
 
   const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchDelta.current = 0;
-    setPaused(true);
   };
   const onTouchMove = (e: TouchEvent) => {
     touchDelta.current = e.touches[0].clientX - touchStartX.current;
   };
   const onTouchEnd = () => {
-    if (touchDelta.current > 40) prev();
-    else if (touchDelta.current < -40) next();
-    setPaused(false);
-  };
-
-  const handleProductClick = (item: typeof carouselItems[0], index: number) => {
-    if (index !== current) {
-      setCurrent(index);
-      return;
-    }
-    if (item.id) {
-      navigate(`/product/${item.id}`);
-    } else {
-      navigate('/catalog');
-    }
+    // swipe navigates to catalog
+    if (Math.abs(touchDelta.current) > 60) navigate('/catalog');
   };
 
   return (
@@ -223,147 +187,81 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right — Smooth 3D Carousel */}
+          {/* Right — Floating Grid */}
           <div
-            className="relative flex flex-col items-center justify-center touch-pan-y"
-            style={{ ...anim('0.4s'), perspective: '1200px' }}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
+            className="relative touch-pan-y"
+            style={{ ...anim('0.4s'), minHeight: 420 }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
             {/* Ambient glow */}
-            <div className="absolute inset-4 rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
+            <div className="absolute inset-0 rounded-full bg-accent/6 blur-[100px] pointer-events-none" />
 
-            {/* Carousel Stage */}
+            {/* Floating product cards */}
             <div className="relative w-full" style={{ height: 420 }}>
-              <div className="relative flex items-center justify-center h-full" style={{ transformStyle: 'preserve-3d' }}>
-                {carouselItems.map((item, i) => {
-                  const offset = getOffset(i);
-                  const absOff = Math.abs(offset);
-                  if (absOff > 3) return null;
+              {carouselItems.slice(0, 8).map((item, i) => {
+                const pos = GRID_POSITIONS[i];
+                const isHovered = hoveredIdx === i;
+                const isFaded = hoveredIdx !== null && !isHovered;
 
-                  const { tX, tZ, rotY, scale } = getTransform(offset);
-                  const opacity = absOff === 0 ? 1 : absOff === 1 ? 0.7 : absOff === 2 ? 0.3 : 0.1;
-                  const zIndex = 20 - absOff;
-                  const blur = absOff >= 2 ? 2 + absOff : 0;
-                  const cardW = absOff === 0 ? 280 : absOff === 1 ? 220 : 180;
-                  const cardH = absOff === 0 ? 260 : absOff === 1 ? 210 : 170;
-
-                  return (
+                return (
+                  <div
+                    key={i}
+                    className="absolute cursor-pointer"
+                    style={{
+                      left: pos.x,
+                      top: pos.y,
+                      width: pos.size,
+                      zIndex: isHovered ? 30 : 10,
+                      transition: 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, filter 0.4s ease, box-shadow 0.4s ease',
+                      transform: isHovered
+                        ? 'scale(1.25) translateY(-12px)'
+                        : `translateY(${Math.sin(Date.now() / 1000 + i) * 0}px)`,
+                      opacity: isFaded ? 0.35 : 1,
+                      filter: isFaded ? 'blur(2px)' : 'none',
+                      animation: `heroFloat ${3 + (i % 3)}s ${pos.delay}s ease-in-out infinite`,
+                    }}
+                    onMouseEnter={() => setHoveredIdx(i)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    onClick={() => {
+                      if (item.id) navigate(`/product/${item.id}`);
+                      else navigate('/catalog');
+                    }}
+                  >
                     <div
-                      key={i}
-                      className="absolute flex flex-col items-center will-change-transform"
-                      style={{
-                        transform: `translateX(${tX}px) translateZ(${tZ}px) rotateY(${rotY}deg) scale(${scale})`,
-                        opacity,
-                        zIndex,
-                        filter: blur ? `blur(${blur}px)` : 'none',
-                        transition: TRANSITION,
-                        pointerEvents: absOff <= 1 ? 'auto' : 'none',
-                      }}
+                      className={`rounded-2xl overflow-hidden bg-white transition-shadow duration-500 ${
+                        isHovered
+                          ? 'shadow-[0_20px_60px_-10px_hsl(var(--sm-gold)/0.45)] ring-2 ring-accent/30'
+                          : 'shadow-lg shadow-black/20 ring-1 ring-white/10'
+                      }`}
                     >
-                      {/* Card */}
-                      <div
-                        className={`relative overflow-hidden cursor-pointer transition-all duration-500 ${
-                          absOff === 0
-                            ? 'rounded-2xl shadow-[0_20px_80px_-20px_hsl(var(--sm-gold)/0.4)] ring-2 ring-accent/20'
-                            : 'rounded-xl shadow-lg ring-1 ring-white/5'
-                        }`}
-                        style={{ width: cardW }}
-                        onClick={() => handleProductClick(item, i)}
-                      >
-                        <div className="bg-white flex items-center justify-center p-3" style={{ minHeight: cardH }}>
-                          <OptimizedImage
-                            src={item.img}
-                            alt={item.label}
-                            className="w-full object-contain"
-                            style={{ height: cardH - 30, minWidth: '60%' }}
-                            sizes="280px"
-                            priority={absOff <= 1}
-                            blurPlaceholder={false}
-                          />
-                        </div>
-                        {/* Active card bottom gradient */}
-                        {absOff === 0 && (
-                          <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-accent/10 to-transparent pointer-events-none" />
-                        )}
-                      </div>
-
-                      {/* Reflection (active card only) */}
-                      {absOff === 0 && (
-                        <div
-                          className="overflow-hidden rounded-2xl mt-1 pointer-events-none"
-                          style={{
-                            width: cardW,
-                            height: 50,
-                            transform: 'scaleY(-1)',
-                            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), transparent)',
-                            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), transparent)',
-                          }}
-                        >
-                          <div className="bg-white flex items-center justify-center p-3" style={{ minHeight: cardH }}>
-                            <OptimizedImage src={item.img} alt="" className="w-full object-contain" style={{ height: cardH - 30, minWidth: '60%' }} blurPlaceholder={false} />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Label */}
-                      <div
-                        className={`mt-3 text-sm font-semibold px-5 py-1.5 rounded-full whitespace-nowrap transition-all duration-500 ${
-                          absOff === 0
-                            ? 'bg-accent text-accent-foreground opacity-100 translate-y-0 shadow-lg shadow-accent/25'
-                            : 'bg-transparent text-white/20 opacity-0 translate-y-4'
-                        }`}
-                        style={{ fontFamily: 'DM Sans, sans-serif' }}
-                      >
-                        {item.label}
+                      <div className="p-2 flex items-center justify-center" style={{ height: pos.size * 0.85 }}>
+                        <OptimizedImage
+                          src={item.img}
+                          alt={item.label}
+                          className="w-full h-full object-contain"
+                          sizes={`${pos.size}px`}
+                          priority={i < 4}
+                          blurPlaceholder={false}
+                        />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Floor reflection glow */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-accent/6 blur-3xl rounded-full" />
-
-            {/* Carousel controls */}
-            <div className="flex items-center gap-6 mt-0 relative z-30">
-              <button
-                onClick={prev}
-                className="w-11 h-11 rounded-full border border-white/15 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:border-[hsl(var(--sm-gold))]/40 hover:bg-[hsl(var(--sm-gold))]/10 transition-all duration-300"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <div className="flex gap-2">
-                {carouselItems.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrent(i)}
-                    className={`rounded-full transition-all duration-500 ease-out ${
-                      i === current ? 'w-8 h-2.5 bg-[hsl(var(--sm-gold))]' : 'w-2.5 h-2.5 bg-white/20 hover:bg-white/40'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={next}
-                className="w-11 h-11 rounded-full border border-white/15 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:border-[hsl(var(--sm-gold))]/40 hover:bg-[hsl(var(--sm-gold))]/10 transition-all duration-300"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={() => setPaused(p => !p)}
-                className="w-9 h-9 rounded-full border border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white/60 transition-all duration-300"
-                title={paused ? 'Play' : 'Pause'}
-              >
-                {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-              </button>
+                    {/* Label on hover */}
+                    <div
+                      className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap transition-all duration-400 ${
+                        isHovered
+                          ? 'bg-accent text-accent-foreground opacity-100 translate-y-0 shadow-md shadow-accent/20'
+                          : 'opacity-0 translate-y-2'
+                      }`}
+                      style={{ fontFamily: 'DM Sans, sans-serif' }}
+                    >
+                      {item.label}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
