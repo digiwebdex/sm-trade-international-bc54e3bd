@@ -1,15 +1,17 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, MessageCircle, ShoppingBag, Check } from 'lucide-react';
+import { Search, X, MessageCircle, ShoppingBag, Check, ArrowRight, Package } from 'lucide-react';
 import { useQuoteBasket } from '@/contexts/QuoteBasketContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import OptimizedImage from '@/components/OptimizedImage';
 import CatalogFilters from '@/components/catalog/CatalogFilters';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { productSlug } from '@/lib/productSlug';
+import { cn } from '@/lib/utils';
 
 // Static fallback images
 import img1 from '@/assets/products/ties-blue.png';
@@ -32,26 +34,26 @@ interface Product {
   titleBn: string;
   descEn: string;
   descBn: string;
-  /** category_id (UUID) when DB data, or slug when static */
   category: string;
   categoryLabelEn?: string;
   categoryLabelBn?: string;
   features?: string[];
+  productCode?: string;
 }
 
 const staticProducts: Product[] = [
-  { src: img3, titleEn: 'Crystal Award Trophy', titleBn: 'ক্রিস্টাল অ্যাওয়ার্ড ট্রফি', descEn: 'Elegant crystal trophies handcrafted for recognition ceremonies, corporate milestones, and VIP events. Each piece is precision-cut and can be laser-engraved with your organization\'s logo and message.', descBn: 'স্বীকৃতি অনুষ্ঠান, কর্পোরেট মাইলফলক এবং ভিআইপি ইভেন্টের জন্য হাতে তৈরি মার্জিত ক্রিস্টাল ট্রফি।', category: 'corporate', features: ['Laser engraving', 'Gift box included', 'Custom sizes'] },
-  { src: img1, titleEn: 'Premium Silk Ties', titleBn: 'প্রিমিয়াম সিল্ক টাই', descEn: 'Hand-crafted silk ties featuring custom logo embroidery, available in a curated palette of corporate colors. Perfect for executive gifting and team branding at international events.', descBn: 'কাস্টম লোগো এমব্রয়ডারি সহ হাতে তৈরি সিল্ক টাই, কর্পোরেট রঙের কিউরেটেড প্যালেটে উপলব্ধ।', category: 'corporate', features: ['100% silk', 'Custom embroidery', 'Gift packaging'] },
-  { src: img4, titleEn: 'Luxury Gift Box', titleBn: 'লাক্সারি গিফট বক্স', descEn: 'Premium leather-bound gift boxes adorned with gold satin ribbon. Designed for VIP corporate presents, conference giveaways, and high-profile diplomatic exchanges.', descBn: 'সোনালী সাটিন রিবনে সজ্জিত প্রিমিয়াম লেদার-বাউন্ড গিফট বক্স।', category: 'corporate', features: ['Genuine leather', 'Gold ribbon', 'Customizable interior'] },
-  { src: img5, titleEn: 'Executive Pen Set', titleBn: 'এক্সিকিউটিভ পেন সেট', descEn: 'Prestigious black & gold ballpoint pen set — the hallmark of professional elegance. Ideal for signing ceremonies, board presentations, and executive desk accessories.', descBn: 'প্রতিষ্ঠিত ব্ল্যাক ও গোল্ড বলপয়েন্ট পেন সেট — পেশাদার কমনীয়তার প্রতীক।', category: 'stationery', features: ['Metal body', 'Gold accents', 'Velvet case'] },
-  { src: img11, titleEn: 'Custom Glassware', titleBn: 'কাস্টম গ্লাসওয়্যার', descEn: 'Elegant crystal glass pitcher crafted for premium hospitality gifting. Perfect for hotel welcome packages, corporate dining, and VIP lounges.', descBn: 'প্রিমিয়াম হসপিটালিটি গিফটিংয়ের জন্য তৈরি মার্জিত ক্রিস্টাল গ্লাস পিচার।', category: 'corporate', features: ['Lead-free crystal', 'Custom etching', 'Premium packaging'] },
-  { src: img7, titleEn: 'Wooden Desk Organizer', titleBn: 'কাঠের ডেস্ক অর্গানাইজার', descEn: 'Handcrafted wooden pen & card holder that brings warmth and sophistication to any executive workspace. Features compartments for pens, business cards, and sticky notes.', descBn: 'হাতে তৈরি কাঠের পেন ও কার্ড হোল্ডার যা যেকোনো এক্সিকিউটিভ ওয়ার্কস্পেসে উষ্ণতা ও পরিশীলতা আনে।', category: 'stationery', features: ['Natural wood', 'Multi-compartment', 'Logo engraving'] },
-  { src: img8, titleEn: 'Insulated Thermos', titleBn: 'ইনসুলেটেড থার্মোস', descEn: 'Matte black stainless steel flask with double-wall vacuum insulation. Keeps beverages hot for 12 hours. Custom logo branding via laser engraving or silk-screen printing.', descBn: 'ডাবল-ওয়াল ভ্যাকুয়াম ইনসুলেশন সহ ম্যাট ব্ল্যাক স্টেইনলেস স্টিল ফ্লাস্ক।', category: 'corporate', features: ['12hr insulation', 'BPA-free', 'Laser branding'] },
-  { src: img9, titleEn: 'Leather Portfolio', titleBn: 'লেদার পোর্টফোলিও', descEn: 'Premium cognac-brown leather executive portfolio folder with brass zipper. Perfect for conferences, board meetings, and professional document organization.', descBn: 'ব্রাস জিপার সহ প্রিমিয়াম কগন্যাক-ব্রাউন লেদার এক্সিকিউটিভ পোর্টফোলিও ফোল্ডার।', category: 'corporate', features: ['Full-grain leather', 'Brass hardware', 'Document pockets'] },
-  { src: img2, titleEn: 'Commemorative Crest', titleBn: 'স্মারক ক্রেস্ট', descEn: 'Bespoke metal crest plaques with fine detail engraving for government ministries, embassies, and corporate headquarters. A lasting symbol of achievement and partnership.', descBn: 'সরকারি মন্ত্রণালয়, দূতাবাস এবং কর্পোরেট সদর দফতরের জন্য সূক্ষ্ম বিস্তারিত খোদাই সহ বিস্পোক ধাতব ক্রেস্ট প্ল্যাক।', category: 'souvenir', features: ['Die-cast metal', 'Custom design', 'Display stand'] },
-  { src: img6, titleEn: 'Crystal Souvenir', titleBn: 'ক্রিস্টাল স্যুভেনির', descEn: 'Custom-engraved crystal souvenirs commemorating landmark infrastructure projects, national celebrations, and diplomatic milestones.', descBn: 'ল্যান্ডমার্ক অবকাঠামো প্রকল্প, জাতীয় উদযাপন এবং কূটনৈতিক মাইলফলক স্মরণে কাস্টম-খোদাই ক্রিস্টাল স্যুভেনির।', category: 'souvenir', features: ['3D engraving', 'Optical crystal', 'Presentation box'] },
-  { src: img10, titleEn: 'Crystal Paperweight', titleBn: 'ক্রিস্টাল পেপারওয়েট', descEn: 'Polished optical crystal globe paperweight — a timeless desk accessory that adds understated luxury to any workspace.', descBn: 'পলিশড অপটিক্যাল ক্রিস্টাল গ্লোব পেপারওয়েট — যেকোনো ওয়ার্কস্পেসে বিচক্ষণ বিলাসিতা যোগ করে।', category: 'corporate', features: ['Optical clarity', 'Heavy weight', 'Gift-ready'] },
-  { src: img12, titleEn: 'Premium Gift Hamper', titleBn: 'প্রিমিয়াম গিফট হ্যাম্পার', descEn: 'Curated luxury gift baskets featuring gourmet selections, wrapped with gold satin ribbon. Ideal for Eid, Pohela Boishakh, and corporate appreciation events.', descBn: 'গুর্মে সিলেকশন সমৃদ্ধ কিউরেটেড লাক্সারি গিফট বাস্কেট, সোনালী সাটিন রিবনে মোড়ানো।', category: 'corporate', features: ['Curated selection', 'Festival-ready', 'Custom branding'] },
+  { src: img3, titleEn: 'Crystal Award Trophy', titleBn: 'ক্রিস্টাল অ্যাওয়ার্ড ট্রফি', descEn: 'Elegant crystal trophies handcrafted for recognition ceremonies, corporate milestones, and VIP events.', descBn: 'স্বীকৃতি অনুষ্ঠান, কর্পোরেট মাইলফলক এবং ভিআইপি ইভেন্টের জন্য হাতে তৈরি মার্জিত ক্রিস্টাল ট্রফি।', category: 'corporate', features: ['Laser engraving', 'Gift box included', 'Custom sizes'] },
+  { src: img1, titleEn: 'Premium Silk Ties', titleBn: 'প্রিমিয়াম সিল্ক টাই', descEn: 'Hand-crafted silk ties featuring custom logo embroidery, available in a curated palette of corporate colors.', descBn: 'কাস্টম লোগো এমব্রয়ডারি সহ হাতে তৈরি সিল্ক টাই।', category: 'corporate', features: ['100% silk', 'Custom embroidery', 'Gift packaging'] },
+  { src: img4, titleEn: 'Luxury Gift Box', titleBn: 'লাক্সারি গিফট বক্স', descEn: 'Premium leather-bound gift boxes adorned with gold satin ribbon for VIP corporate presents.', descBn: 'সোনালী সাটিন রিবনে সজ্জিত প্রিমিয়াম লেদার-বাউন্ড গিফট বক্স।', category: 'corporate', features: ['Genuine leather', 'Gold ribbon', 'Customizable interior'] },
+  { src: img5, titleEn: 'Executive Pen Set', titleBn: 'এক্সিকিউটিভ পেন সেট', descEn: 'Prestigious black & gold ballpoint pen set — the hallmark of professional elegance.', descBn: 'প্রতিষ্ঠিত ব্ল্যাক ও গোল্ড বলপয়েন্ট পেন সেট।', category: 'stationery', features: ['Metal body', 'Gold accents', 'Velvet case'] },
+  { src: img11, titleEn: 'Custom Glassware', titleBn: 'কাস্টম গ্লাসওয়্যার', descEn: 'Elegant crystal glass pitcher crafted for premium hospitality gifting.', descBn: 'প্রিমিয়াম হসপিটালিটি গিফটিংয়ের জন্য তৈরি মার্জিত ক্রিস্টাল গ্লাস পিচার।', category: 'corporate', features: ['Lead-free crystal', 'Custom etching', 'Premium packaging'] },
+  { src: img7, titleEn: 'Wooden Desk Organizer', titleBn: 'কাঠের ডেস্ক অর্গানাইজার', descEn: 'Handcrafted wooden pen & card holder for executive workspaces.', descBn: 'এক্সিকিউটিভ ওয়ার্কস্পেসের জন্য কাঠের পেন ও কার্ড হোল্ডার।', category: 'stationery', features: ['Natural wood', 'Multi-compartment', 'Logo engraving'] },
+  { src: img8, titleEn: 'Insulated Thermos', titleBn: 'ইনসুলেটেড থার্মোস', descEn: 'Matte black stainless steel flask with double-wall vacuum insulation.', descBn: 'ডাবল-ওয়াল ভ্যাকুয়াম ইনসুলেশন সহ ম্যাট ব্ল্যাক ফ্লাস্ক।', category: 'corporate', features: ['12hr insulation', 'BPA-free', 'Laser branding'] },
+  { src: img9, titleEn: 'Leather Portfolio', titleBn: 'লেদার পোর্টফোলিও', descEn: 'Premium cognac-brown leather executive portfolio folder with brass zipper.', descBn: 'ব্রাস জিপার সহ প্রিমিয়াম লেদার এক্সিকিউটিভ পোর্টফোলিও ফোল্ডার।', category: 'corporate', features: ['Full-grain leather', 'Brass hardware', 'Document pockets'] },
+  { src: img2, titleEn: 'Commemorative Crest', titleBn: 'স্মারক ক্রেস্ট', descEn: 'Bespoke metal crest plaques with fine detail engraving for government ministries.', descBn: 'সরকারি মন্ত্রণালয়ের জন্য সূক্ষ্ম খোদাই সহ ধাতব ক্রেস্ট প্ল্যাক।', category: 'souvenir', features: ['Die-cast metal', 'Custom design', 'Display stand'] },
+  { src: img6, titleEn: 'Crystal Souvenir', titleBn: 'ক্রিস্টাল স্যুভেনির', descEn: 'Custom-engraved crystal souvenirs commemorating landmark projects.', descBn: 'ল্যান্ডমার্ক প্রকল্প স্মরণে কাস্টম-খোদাই ক্রিস্টাল স্যুভেনির।', category: 'souvenir', features: ['3D engraving', 'Optical crystal', 'Presentation box'] },
+  { src: img10, titleEn: 'Crystal Paperweight', titleBn: 'ক্রিস্টাল পেপারওয়েট', descEn: 'Polished optical crystal globe paperweight — a timeless desk accessory.', descBn: 'পলিশড অপটিক্যাল ক্রিস্টাল গ্লোব পেপারওয়েট।', category: 'corporate', features: ['Optical clarity', 'Heavy weight', 'Gift-ready'] },
+  { src: img12, titleEn: 'Premium Gift Hamper', titleBn: 'প্রিমিয়াম গিফট হ্যাম্পার', descEn: 'Curated luxury gift baskets featuring gourmet selections.', descBn: 'গুর্মে সিলেকশন সমৃদ্ধ কিউরেটেড লাক্সারি গিফট বাস্কেট।', category: 'corporate', features: ['Curated selection', 'Festival-ready', 'Custom branding'] },
 ];
 
 const staticCategories = [
@@ -60,6 +62,13 @@ const staticCategories = [
   { id: 'souvenir', labelEn: 'Souvenirs', labelBn: 'স্যুভেনির' },
   { id: 'stationery', labelEn: 'Stationery', labelBn: 'স্টেশনারি' },
 ];
+
+const CATEGORY_ICONS: Record<string, string> = {
+  'Corporate Gift Items': '🎁',
+  'Office Accessories': '🖊️',
+  'Leather Products': '👜',
+  'Customized Glass & Crystal': '💎',
+};
 
 const Catalog = () => {
   const { lang } = useLanguage();
@@ -72,18 +81,14 @@ const Catalog = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
-  // Derive filter and search directly from URL params (source of truth)
   const filter = searchParams.get('category') || 'all';
   const search = searchParams.get('q') || '';
 
   const setFilter = useCallback((cat: string) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      if (cat === 'all') {
-        next.delete('category');
-      } else {
-        next.set('category', cat);
-      }
+      if (cat === 'all') next.delete('category');
+      else next.set('category', cat);
       return next;
     }, { replace: true });
   }, [setSearchParams]);
@@ -91,25 +96,23 @@ const Catalog = () => {
   const setSearch = useCallback((q: string) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      if (!q) {
-        next.delete('q');
-      } else {
-        next.set('q', q);
-      }
+      if (!q) next.delete('q');
+      else next.set('q', q);
       return next;
     }, { replace: true });
   }, [setSearchParams]);
 
   const handleAddToQuote = useCallback((p: Product, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    const id = p.titleEn.toLowerCase().replace(/\s+/g, '-');
+    e?.preventDefault();
+    const id = p.id || p.titleEn.toLowerCase().replace(/\s+/g, '-');
     addItem({ id, titleEn: p.titleEn, titleBn: p.titleBn, src: p.src, category: p.category });
     setJustAdded(id);
     setTimeout(() => setJustAdded(null), 1500);
   }, [addItem]);
 
   const isInBasket = useCallback((p: Product) => {
-    const id = p.titleEn.toLowerCase().replace(/\s+/g, '-');
+    const id = p.id || p.titleEn.toLowerCase().replace(/\s+/g, '-');
     return basketItems.some(i => i.id === id);
   }, [basketItems]);
 
@@ -137,7 +140,6 @@ const Catalog = () => {
     gcTime: 5 * 60 * 1000,
   });
 
-  // Try DB products first
   const { data: dbProducts = [] } = useQuery({
     queryKey: ['catalog-products'],
     queryFn: async () => {
@@ -152,9 +154,34 @@ const Catalog = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch variant counts per product for showing swatch indicators
+  const { data: variantCounts = [] } = useQuery({
+    queryKey: ['catalog-variant-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('product_variants')
+        .select('product_id, color_name, color_hex')
+        .eq('is_active', true);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const variantsByProduct = useMemo(() => {
+    const map: Record<string, { color_name: string | null; color_hex: string | null }[]> = {};
+    variantCounts.forEach(v => {
+      if (!map[v.product_id]) map[v.product_id] = [];
+      // Deduplicate by color_name
+      if (v.color_name && !map[v.product_id].some(x => x.color_name === v.color_name)) {
+        map[v.product_id].push({ color_name: v.color_name, color_hex: v.color_hex });
+      }
+    });
+    return map;
+  }, [variantCounts]);
+
   const useDbData = dbProducts.length > 0;
 
-  // Build category list: DB or static fallback
   const categories = useMemo(() => {
     const allOption = { id: 'all', labelEn: 'All Products', labelBn: 'সকল পণ্য' };
     if (useDbData && dbCategories.length > 0) {
@@ -177,18 +204,17 @@ const Catalog = () => {
           titleBn: p.name_bn || p.name_en,
           descEn: p.description_en || '',
           descBn: p.description_bn || p.description_en || '',
-          // Use the actual category_id UUID for filtering
           category: p.category_id || 'all',
           categoryLabelEn: cat?.name_en || '',
           categoryLabelBn: cat?.name_bn || cat?.name_en || '',
           features: [],
+          productCode: p.product_code || undefined,
         } as Product;
       });
     }
     return staticProducts;
   }, [dbProducts, useDbData]);
 
-  // Extract all unique features
   const allFeatures = useMemo(() => {
     const set = new Set<string>();
     products.forEach(p => p.features?.forEach(f => set.add(f)));
@@ -227,13 +253,32 @@ const Catalog = () => {
   const title = (p: Product) => lang === 'en' ? p.titleEn : p.titleBn;
   const desc = (p: Product) => lang === 'en' ? p.descEn : p.descBn;
 
+  const getProductLink = (p: Product) => {
+    if (p.id) {
+      return `/product/${productSlug({ name_en: p.titleEn, product_code: p.productCode || null, id: p.id })}`;
+    }
+    return null;
+  };
+
+  // Count products per category for the featured section
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products.forEach(p => {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    return counts;
+  }, [products]);
+
   return (
     <div className="bg-background">
 
       {/* Hero banner */}
-      <section className="relative bg-primary text-primary-foreground py-20 overflow-hidden">
+      <section className="relative bg-primary text-primary-foreground py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'radial-gradient(circle at 20% 50%, hsl(var(--sm-gold)) 0%, transparent 50%), radial-gradient(circle at 80% 50%, hsl(var(--sm-gold)) 0%, transparent 50%)',
+        }} />
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }} />
         <div className="container mx-auto px-4 relative text-center">
           <span className="inline-block text-accent text-xs font-semibold tracking-[0.25em] uppercase mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -247,8 +292,51 @@ const Catalog = () => {
               ? 'Explore our curated collection of premium corporate gifts, custom souvenirs, and branded merchandise.'
               : 'আমাদের প্রিমিয়াম কর্পোরেট গিফট, কাস্টম স্যুভেনির এবং ব্র্যান্ডেড পণ্যের কিউরেটেড সংগ্রহ অন্বেষণ করুন।'}
           </p>
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-primary-foreground/50" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-accent" />
+              <span>{products.length}+ {lang === 'en' ? 'Products' : 'পণ্য'}</span>
+            </div>
+            <div className="w-px h-4 bg-primary-foreground/20" />
+            <div className="flex items-center gap-2">
+              <span>{(categories.length - 1)} {lang === 'en' ? 'Categories' : 'ক্যাটাগরি'}</span>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Featured Categories */}
+      {categories.length > 1 && filter === 'all' && !search && (
+        <section className="py-12 border-b border-border/50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+              {lang === 'en' ? 'Shop by Category' : 'ক্যাটাগরি অনুযায়ী কেনাকাটা'}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {categories.filter(c => c.id !== 'all').map(cat => {
+                const count = categoryCounts[cat.id] || 0;
+                const emoji = CATEGORY_ICONS[cat.labelEn] || '📦';
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFilter(cat.id)}
+                    className="group relative bg-card rounded-xl border border-border/50 p-6 text-center hover:shadow-lg hover:border-accent/30 hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="text-3xl mb-3">{emoji}</div>
+                    <h3 className="font-semibold text-sm mb-1 group-hover:text-accent transition-colors">
+                      {lang === 'en' ? cat.labelEn : cat.labelBn}
+                    </h3>
+                    <p className="text-xs text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                      {count} {lang === 'en' ? 'products' : 'পণ্য'}
+                    </p>
+                    <ArrowRight className="h-4 w-4 text-accent opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Search bar */}
       <section className="sticky top-16 z-40 bg-background/95 backdrop-blur-lg border-b border-border py-4">
@@ -274,12 +362,17 @@ const Catalog = () => {
               placeholder={lang === 'en' ? 'Search catalog...' : 'ক্যাটালগ খুঁজুন...'}
               className="pl-10 rounded-full"
             />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              </button>
+            )}
           </div>
         </div>
       </section>
 
       {/* Content with sidebar */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar filters */}
@@ -300,14 +393,22 @@ const Catalog = () => {
 
             {/* Product grid */}
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-6" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {lang === 'en'
-                  ? `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}`
-                  : `${filtered.length}টি পণ্য দেখানো হচ্ছে`}
-              </p>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm text-muted-foreground" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {lang === 'en'
+                    ? `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}`
+                    : `${filtered.length}টি পণ্য দেখানো হচ্ছে`}
+                </p>
+                {(filter !== 'all' || search) && (
+                  <Button variant="ghost" size="sm" onClick={resetFilters} className="text-xs">
+                    {lang === 'en' ? 'Clear all' : 'সব মুছুন'}
+                  </Button>
+                )}
+              </div>
 
               {filtered.length === 0 ? (
                 <div className="text-center py-24 text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-20" />
                   <p className="mb-4">{lang === 'en' ? 'No products found.' : 'কোনো পণ্য পাওয়া যায়নি।'}</p>
                   <Button variant="outline" size="sm" onClick={resetFilters}>
                     {lang === 'en' ? 'Clear filters' : 'ফিল্টার মুছুন'}
@@ -315,72 +416,103 @@ const Catalog = () => {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filtered.map((p, i) => (
-                    <div
-                      key={i}
-                      className="group cursor-pointer bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-400"
-                      onClick={() => setSelected(p)}
-                    >
-                      <div className="aspect-[4/3] bg-white overflow-hidden relative">
-                        <OptimizedImage
-                          src={p.src}
-                          alt={title(p)}
-                          className="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500"
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          wrapperClassName="w-full h-full relative"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <span className="bg-primary/90 text-primary-foreground text-[11px] font-semibold px-3 py-1 rounded-full backdrop-blur-sm" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                            {lang === 'en' ? (p.categoryLabelEn || categories.find(c => c.id === p.category)?.labelEn || p.category) : (p.categoryLabelBn || categories.find(c => c.id === p.category)?.labelBn || p.category)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-lg font-bold mb-2 group-hover:text-accent transition-colors">{title(p)}</h3>
-                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                          {desc(p)}
-                        </p>
-                        {p.features && p.features.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-4">
-                            {p.features.map((f, fi) => (
-                              <span key={fi} className="text-[10px] font-medium bg-accent/10 text-accent px-2.5 py-1 rounded-full" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                                {f}
-                              </span>
-                            ))}
+                  {filtered.map((p, i) => {
+                    const link = getProductLink(p);
+                    const colors = p.id ? variantsByProduct[p.id] || [] : [];
+                    const CardWrapper = link ? Link : 'div';
+                    const cardProps = link ? { to: link } : {};
+
+                    return (
+                      <CardWrapper
+                        key={p.id || i}
+                        {...cardProps as any}
+                        className="group cursor-pointer bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-400 block"
+                      >
+                        <div className="aspect-[4/3] bg-white overflow-hidden relative">
+                          {p.src ? (
+                            <OptimizedImage
+                              src={p.src}
+                              alt={title(p)}
+                              className="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-500"
+                              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                              wrapperClassName="w-full h-full relative"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="h-16 w-16 text-muted-foreground/20" />
+                            </div>
+                          )}
+                          <div className="absolute top-4 left-4">
+                            <span className="bg-primary/90 text-primary-foreground text-[11px] font-semibold px-3 py-1 rounded-full backdrop-blur-sm" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                              {lang === 'en' ? (p.categoryLabelEn || categories.find(c => c.id === p.category)?.labelEn || '') : (p.categoryLabelBn || categories.find(c => c.id === p.category)?.labelBn || '')}
+                            </span>
                           </div>
-                        )}
-                        <div className="flex items-center justify-between gap-2">
-                          <button
-                            onClick={(e) => handleAddToQuote(p, e)}
-                            className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${
-                              isInBasket(p)
-                                ? 'bg-accent/15 text-accent'
-                                : 'bg-primary/10 text-primary hover:bg-primary/20'
-                            }`}
-                            style={{ fontFamily: 'DM Sans, sans-serif' }}
-                          >
-                            {justAdded === p.titleEn.toLowerCase().replace(/\s+/g, '-') ? (
-                              <><Check className="h-3.5 w-3.5" /> {lang === 'en' ? 'Added!' : 'যোগ হয়েছে!'}</>
-                            ) : isInBasket(p) ? (
-                              <><ShoppingBag className="h-3.5 w-3.5" /> {lang === 'en' ? 'In Basket' : 'বাস্কেটে আছে'}</>
-                            ) : (
-                              <><ShoppingBag className="h-3.5 w-3.5" /> {lang === 'en' ? 'Add to Quote' : 'কোটে যোগ করুন'}</>
-                            )}
-                          </button>
-                          <a
-                            href={getWhatsAppUrl(p)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className="flex items-center gap-1 text-[11px] font-medium text-[hsl(142,70%,40%)] hover:underline"
-                          >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                            WhatsApp
-                          </a>
+                          {colors.length > 1 && (
+                            <div className="absolute bottom-3 right-3 flex gap-1">
+                              {colors.slice(0, 5).map((c, ci) => (
+                                <div
+                                  key={ci}
+                                  className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                                  style={{ backgroundColor: c.color_hex || '#ccc' }}
+                                  title={c.color_name || ''}
+                                />
+                              ))}
+                              {colors.length > 5 && (
+                                <div className="w-4 h-4 rounded-full bg-muted border-2 border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-muted-foreground">
+                                  +{colors.length - 5}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                        <div className="p-5">
+                          <h3 className="text-base font-bold mb-1.5 group-hover:text-accent transition-colors line-clamp-1">{title(p)}</h3>
+                          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-4" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                            {desc(p)}
+                          </p>
+                          {p.features && p.features.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-4">
+                              {p.features.slice(0, 3).map((f, fi) => (
+                                <span key={fi} className="text-[10px] font-medium bg-accent/10 text-accent px-2.5 py-1 rounded-full" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                                  {f}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between gap-2">
+                            <button
+                              onClick={(e) => handleAddToQuote(p, e)}
+                              className={cn(
+                                'flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all',
+                                isInBasket(p)
+                                  ? 'bg-accent/15 text-accent'
+                                  : 'bg-primary/10 text-primary hover:bg-primary/20',
+                              )}
+                              style={{ fontFamily: 'DM Sans, sans-serif' }}
+                            >
+                              {justAdded === (p.id || p.titleEn.toLowerCase().replace(/\s+/g, '-')) ? (
+                                <><Check className="h-3.5 w-3.5" /> {lang === 'en' ? 'Added!' : 'যোগ হয়েছে!'}</>
+                              ) : isInBasket(p) ? (
+                                <><ShoppingBag className="h-3.5 w-3.5" /> {lang === 'en' ? 'In Basket' : 'বাস্কেটে আছে'}</>
+                              ) : (
+                                <><ShoppingBag className="h-3.5 w-3.5" /> {lang === 'en' ? 'Add to Quote' : 'কোটে যোগ করুন'}</>
+                              )}
+                            </button>
+                            <a
+                              href={getWhatsAppUrl(p)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={e => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[11px] font-medium text-[hsl(142,70%,40%)] hover:underline"
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WhatsApp
+                            </a>
+                          </div>
+                        </div>
+                      </CardWrapper>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -399,19 +531,27 @@ const Catalog = () => {
               ? 'We specialize in bespoke corporate gifts tailored to your brand. Get in touch for a free consultation.'
               : 'আমরা আপনার ব্র্যান্ডের জন্য বিশেষভাবে তৈরি কর্পোরেট গিফটে বিশেষজ্ঞ। বিনামূল্যে পরামর্শের জন্য যোগাযোগ করুন।'}
           </p>
-          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-white px-10 py-6 rounded-lg text-base">
-            <a href="/#contact">
-              <span className="font-semibold" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                {lang === 'en' ? 'Request a Quote' : 'কোটেশন অনুরোধ করুন'}
-              </span>
-            </a>
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-white px-10 py-6 rounded-lg text-base">
+              <a href="/#contact">
+                <span className="font-semibold" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  {lang === 'en' ? 'Request a Quote' : 'কোটেশন অনুরোধ করুন'}
+                </span>
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 px-10 py-6 rounded-lg text-base">
+              <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                <span className="font-semibold" style={{ fontFamily: 'DM Sans, sans-serif' }}>
+                  WhatsApp
+                </span>
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
-      
-
-      {/* Product Detail Modal */}
+      {/* Product Detail Modal (for static/non-linked products) */}
       {selected && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelected(null)}>
           <div
@@ -425,31 +565,18 @@ const Catalog = () => {
               >
                 <X className="h-5 w-5" />
               </button>
-
               <div className="aspect-[16/10] bg-secondary/50 overflow-hidden rounded-t-2xl">
                 <img src={selected.src} alt={title(selected)} className="w-full h-full object-contain p-10" />
               </div>
             </div>
-
             <div className="p-8">
               <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {lang === 'en' ? (selected.categoryLabelEn || categories.find(c => c.id === selected.category)?.labelEn || selected.category) : (selected.categoryLabelBn || categories.find(c => c.id === selected.category)?.labelBn || selected.category)}
               </span>
-
               <h2 className="text-2xl md:text-3xl font-bold mb-4">{title(selected)}</h2>
-
               <p className="text-muted-foreground leading-relaxed mb-6" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                 {desc(selected)}
               </p>
-
-              {/* Bilingual alternate */}
-              {selected.titleBn && selected.titleEn && (
-                <p className="text-muted-foreground/50 text-sm mb-6 pb-6 border-b border-border" style={{ fontFamily: 'DM Sans, sans-serif' }}>
-                  {lang === 'en' ? `বাংলা: ${selected.titleBn} — ${selected.descBn}` : `English: ${selected.titleEn} — ${selected.descEn}`}
-                </p>
-              )}
-
-              {/* Features */}
               {selected.features && selected.features.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold mb-3" style={{ fontFamily: 'DM Sans, sans-serif' }}>
@@ -464,12 +591,11 @@ const Catalog = () => {
                   </div>
                 </div>
               )}
-
               <div className="flex flex-wrap gap-3">
                 <Button
                   size="lg"
                   className="bg-accent hover:bg-accent/90 text-white px-8 gap-2"
-                  onClick={() => { handleAddToQuote(selected); }}
+                  onClick={() => handleAddToQuote(selected)}
                 >
                   <ShoppingBag className="h-4 w-4" />
                   <span className="font-semibold" style={{ fontFamily: 'DM Sans, sans-serif' }}>
