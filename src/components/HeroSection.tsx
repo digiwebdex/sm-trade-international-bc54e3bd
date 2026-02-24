@@ -40,7 +40,8 @@ const stats = [
   { value: '50+', label: 'Countries' },
 ];
 
-const SPEED = 3500;
+const SPEED = 3200;
+const TRANSITION = 'transform 0.75s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease';
 
 const HeroSection = () => {
   const { t, lang } = useLanguage();
@@ -104,6 +105,16 @@ const HeroSection = () => {
     if (diff > len / 2) diff -= len;
     if (diff < -len / 2) diff += len;
     return diff;
+  };
+
+  // Smooth interpolation helpers
+  const getTransform = (offset: number) => {
+    const abs = Math.abs(offset);
+    const tX = offset * 190;
+    const tZ = abs === 0 ? 80 : abs === 1 ? -30 : -100;
+    const rotY = offset * 30;
+    const scale = abs === 0 ? 1 : abs === 1 ? 0.75 : 0.55;
+    return { tX, tZ, rotY, scale };
   };
 
   const handleProductClick = (item: typeof carouselItems[0], index: number) => {
@@ -212,14 +223,10 @@ const HeroSection = () => {
                   const absOff = Math.abs(offset);
                   if (absOff > 2) return null;
 
-                  // Smoother 3D transforms
-                  const tX = offset * 200;
-                  const scale = absOff === 0 ? 1 : absOff === 1 ? 0.78 : 0.58;
-                  const opacity = absOff === 0 ? 1 : absOff === 1 ? 0.6 : 0.25;
+                  const { tX, tZ, rotY, scale } = getTransform(offset);
+                  const opacity = absOff === 0 ? 1 : absOff === 1 ? 0.55 : 0.2;
                   const zIndex = 10 - absOff;
-                  const rotY = offset * 25;
-                  const tZ = absOff === 0 ? 60 : absOff === 1 ? -40 : -120;
-                  const blur = absOff >= 2 ? 2 : 0;
+                  const blur = absOff >= 2 ? 3 : 0;
 
                   return (
                     <div
@@ -230,7 +237,7 @@ const HeroSection = () => {
                         opacity,
                         zIndex,
                         filter: blur ? `blur(${blur}px)` : 'none',
-                        transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.5s ease, filter 0.5s ease',
+                        transition: TRANSITION,
                         pointerEvents: absOff <= 1 ? 'auto' : 'none',
                       }}
                     >
