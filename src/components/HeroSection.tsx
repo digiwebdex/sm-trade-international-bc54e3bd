@@ -109,13 +109,15 @@ const HeroSection = () => {
     return diff;
   };
 
-  // Smooth interpolation helpers
+  // Coverflow fan interpolation
   const getTransform = (offset: number) => {
     const abs = Math.abs(offset);
-    const tX = offset * 190;
-    const tZ = abs === 0 ? 80 : abs === 1 ? -30 : -100;
-    const rotY = offset * 30;
-    const scale = abs === 0 ? 1 : abs === 1 ? 0.75 : 0.55;
+    const sign = offset > 0 ? 1 : offset < 0 ? -1 : 0;
+    // Fan arc: center card flat, side cards tilt away
+    const tX = abs === 0 ? 0 : sign * (140 + (abs - 1) * 120);
+    const tZ = abs === 0 ? 100 : abs === 1 ? 0 : -60;
+    const rotY = abs === 0 ? 0 : sign * -(45 + (abs - 1) * 10);
+    const scale = abs === 0 ? 1 : abs === 1 ? 0.82 : 0.65;
     return { tX, tZ, rotY, scale };
   };
 
@@ -232,20 +234,22 @@ const HeroSection = () => {
             onTouchEnd={onTouchEnd}
           >
             {/* Ambient glow */}
-            <div className="absolute inset-8 rounded-full bg-primary/10 blur-[80px] pointer-events-none" />
+            <div className="absolute inset-4 rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
 
             {/* Carousel Stage */}
-            <div className="relative w-full" style={{ height: 380 }}>
+            <div className="relative w-full" style={{ height: 420 }}>
               <div className="relative flex items-center justify-center h-full" style={{ transformStyle: 'preserve-3d' }}>
                 {carouselItems.map((item, i) => {
                   const offset = getOffset(i);
                   const absOff = Math.abs(offset);
-                  if (absOff > 2) return null;
+                  if (absOff > 3) return null;
 
                   const { tX, tZ, rotY, scale } = getTransform(offset);
-                  const opacity = absOff === 0 ? 1 : absOff === 1 ? 0.55 : 0.2;
-                  const zIndex = 10 - absOff;
-                  const blur = absOff >= 2 ? 3 : 0;
+                  const opacity = absOff === 0 ? 1 : absOff === 1 ? 0.7 : absOff === 2 ? 0.3 : 0.1;
+                  const zIndex = 20 - absOff;
+                  const blur = absOff >= 2 ? 2 + absOff : 0;
+                  const cardW = absOff === 0 ? 280 : absOff === 1 ? 220 : 180;
+                  const cardH = absOff === 0 ? 260 : absOff === 1 ? 210 : 170;
 
                   return (
                     <div
@@ -260,33 +264,57 @@ const HeroSection = () => {
                         pointerEvents: absOff <= 1 ? 'auto' : 'none',
                       }}
                     >
+                      {/* Card */}
                       <div
-                        className={`relative overflow-hidden cursor-pointer transition-shadow duration-500 ${
+                        className={`relative overflow-hidden cursor-pointer transition-all duration-500 ${
                           absOff === 0
-                            ? 'rounded-3xl border-2 border-[hsl(var(--sm-gold))]/30 shadow-[0_8px_60px_-12px_hsl(var(--sm-gold)/0.35)] ring-1 ring-[hsl(var(--sm-gold))]/15'
-                            : 'rounded-2xl border border-white/10 shadow-xl'
+                            ? 'rounded-2xl shadow-[0_20px_80px_-20px_hsl(var(--sm-gold)/0.4)] ring-2 ring-accent/20'
+                            : 'rounded-xl shadow-lg ring-1 ring-white/5'
                         }`}
-                        style={{ width: absOff === 0 ? 260 : 200 }}
+                        style={{ width: cardW }}
                         onClick={() => handleProductClick(item, i)}
                       >
-                        <div className="bg-white p-4 flex items-center justify-center" style={{ minHeight: absOff === 0 ? 240 : 200 }}>
+                        <div className="bg-white flex items-center justify-center p-3" style={{ minHeight: cardH }}>
                           <OptimizedImage
                             src={item.img}
                             alt={item.label}
                             className="w-full object-contain"
-                            style={{ height: absOff === 0 ? 210 : 170, minWidth: '60%' }}
-                            sizes="260px"
+                            style={{ height: cardH - 30, minWidth: '60%' }}
+                            sizes="280px"
                             priority={absOff <= 1}
                             blurPlaceholder={false}
                           />
                         </div>
+                        {/* Active card bottom gradient */}
+                        {absOff === 0 && (
+                          <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-accent/10 to-transparent pointer-events-none" />
+                        )}
                       </div>
-                      {/* Label pill */}
+
+                      {/* Reflection (active card only) */}
+                      {absOff === 0 && (
+                        <div
+                          className="overflow-hidden rounded-2xl mt-1 pointer-events-none"
+                          style={{
+                            width: cardW,
+                            height: 50,
+                            transform: 'scaleY(-1)',
+                            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), transparent)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.15), transparent)',
+                          }}
+                        >
+                          <div className="bg-white flex items-center justify-center p-3" style={{ minHeight: cardH }}>
+                            <OptimizedImage src={item.img} alt="" className="w-full object-contain" style={{ height: cardH - 30, minWidth: '60%' }} blurPlaceholder={false} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Label */}
                       <div
-                        className={`mt-4 text-sm font-semibold px-5 py-2 rounded-full whitespace-nowrap transition-all duration-500 ${
+                        className={`mt-3 text-sm font-semibold px-5 py-1.5 rounded-full whitespace-nowrap transition-all duration-500 ${
                           absOff === 0
-                            ? 'bg-[hsl(var(--sm-gold))] text-white opacity-100 translate-y-0 shadow-lg shadow-[hsl(var(--sm-gold))]/30'
-                            : 'bg-transparent text-white/30 opacity-0 translate-y-3'
+                            ? 'bg-accent text-accent-foreground opacity-100 translate-y-0 shadow-lg shadow-accent/25'
+                            : 'bg-transparent text-white/20 opacity-0 translate-y-4'
                         }`}
                         style={{ fontFamily: 'DM Sans, sans-serif' }}
                       >
@@ -298,8 +326,8 @@ const HeroSection = () => {
               </div>
             </div>
 
-            {/* Soft reflection */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-2/3 h-12 bg-[hsl(var(--sm-gold))]/8 blur-3xl rounded-full" />
+            {/* Floor reflection glow */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-accent/6 blur-3xl rounded-full" />
 
             {/* Carousel controls */}
             <div className="flex items-center gap-6 mt-0 relative z-30">
