@@ -197,7 +197,7 @@ const ProductImageGallery = ({
                 src={current.url}
                 alt={current.label || title}
                 className={cn(
-                  'w-full h-full object-cover transition-all duration-300',
+                  'w-full h-full object-contain transition-all duration-300',
                   isZoomed ? 'scale-[2.2]' : 'scale-100',
                   fade ? 'opacity-100' : 'opacity-0',
                 )}
