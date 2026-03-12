@@ -136,14 +136,6 @@ const HeroSection = () => {
 
           {/* Left — Value Proposition */}
           <div className="flex flex-col justify-center" style={anim('0s')}>
-            <span
-              className="inline-flex items-center gap-2 text-primary-foreground/60 text-xs font-semibold tracking-[0.2em] uppercase mb-5"
-              style={{ fontFamily: 'Montserrat, DM Sans, sans-serif' }}
-            >
-              <span className="w-8 h-px bg-primary" />
-              S. M. Trade International
-            </span>
-
             <h1
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-5 text-white"
               style={anim('0.1s')}
