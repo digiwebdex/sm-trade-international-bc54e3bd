@@ -12,12 +12,7 @@ import heroBg from '@/assets/hero-bg.jpg';
 // Module-level flag: animations only play on first ever mount
 let hasAnimated = false;
 
-const stats = [
-  { value: '500+', label: 'Clients' },
-  { value: '10+', label: 'Years' },
-  { value: '1000+', label: 'Products' },
-  { value: '50+', label: 'Countries' },
-];
+// Stats are now fetched from site settings
 
 const SPEED = 3500;
 const CUBE_SIZE = 280; // px – height & depth of cube
