@@ -384,7 +384,7 @@ const ProductDetail = () => {
                         onMouseLeave={() => setHoveredColor(null)}
                         title={v.color_name ?? ''}
                         className={cn(
-                          'relative w-[52px] h-[52px] rounded-lg overflow-hidden transition-all duration-200',
+                          'relative w-[72px] h-[72px] rounded-lg overflow-hidden transition-all duration-200',
                           isActive
                             ? 'ring-2 ring-accent ring-offset-2 ring-offset-background shadow-md scale-105'
                             : 'border-2 border-border/40 hover:border-accent/60 hover:shadow-sm',
