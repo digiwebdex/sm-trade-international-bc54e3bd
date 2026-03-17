@@ -121,6 +121,17 @@ const ProductDetail = () => {
     enabled: !!product?.category_id,
   });
 
+  // ─── Pre-select variant from URL param ─────────────────────────────
+  useEffect(() => {
+    if (!variants.length) return;
+    const variantParam = searchParams.get('variant');
+    if (variantParam && !selectedColor) {
+      const match = variants.find(v => v.variant_label_en === variantParam || v.color_name === variantParam);
+      if (match?.color_name) setSelectedColor(match.color_name);
+      if (match?.design_type) setSelectedDesign(match.design_type);
+    }
+  }, [variants, searchParams]);
+
   // ─── Variant Logic ────────────────────────────────────────────────────
   const uniqueDesigns = useMemo(() => {
     const seen = new Set<string>();
