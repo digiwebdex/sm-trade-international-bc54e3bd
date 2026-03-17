@@ -240,8 +240,11 @@ const AdminSettings = () => {
         <p className="text-muted-foreground">Manage your website content in English & Bengali</p>
       </div>
 
-      <Tabs defaultValue="hero" className="w-full">
-        <TabsList className="grid grid-cols-7 w-full max-w-3xl">
+      <Tabs defaultValue="branding" className="w-full">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full max-w-4xl">
+          <TabsTrigger value="branding" className="gap-1.5 text-xs">
+            <Globe className="h-3.5 w-3.5" /> Branding
+          </TabsTrigger>
           <TabsTrigger value="hero" className="gap-1.5 text-xs">
             <Layout className="h-3.5 w-3.5" /> Hero
           </TabsTrigger>
@@ -264,6 +267,31 @@ const AdminSettings = () => {
             <FileText className="h-3.5 w-3.5" /> Footer
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="branding">
+          <Card>
+            <CardHeader>
+              <CardTitle>Branding & Identity</CardTitle>
+              <CardDescription>Company name, tagline, top bar text, and credits shown across the entire site</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <BilingualField section="branding" field="company_name" label="Company Name" />
+              <BilingualField section="branding" field="tagline" label="Tagline / Slogan" />
+              <BilingualField section="branding" field="topbar_badge" label="Top Bar Badge Text" />
+              <div className="border-t pt-4 mt-4">
+                <Label className="font-semibold text-sm mb-3 block">Footer Credits</Label>
+                <BilingualField section="branding" field="credit_text" label="Credit Text" />
+                <BilingualField section="branding" field="credit_url" label="Credit Link URL" />
+              </div>
+              <div className="border-t pt-4 mt-4">
+                <Label className="font-semibold text-sm mb-3 block">Google Maps</Label>
+                <BilingualField section="branding" field="google_maps_embed" label="Google Maps Embed URL" />
+                <p className="text-xs text-muted-foreground mt-1">Paste the src URL from Google Maps embed code (iframe src="...")</p>
+              </div>
+              <SaveButton section="branding" />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="hero">
           <Card>
