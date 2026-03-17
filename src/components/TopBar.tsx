@@ -1,8 +1,18 @@
 import { Phone, Mail } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const TopBar = () => {
   const { lang, setLang } = useLanguage();
+  const { get } = useSiteSettings();
+
+  const phone = get('contact', 'phone', '+8801867666888');
+  const email = get('contact', 'email', 'smtrade.int94@gmail.com');
+  const whatsapp = get('contact', 'whatsapp_number', '8801867666888');
+  const badge = get('branding', 'topbar_badge', '1st Class Govt. Contractor, Supplier & Importer');
+
+  const cleanPhone = phone.replace(/[^0-9+]/g, '');
+  const cleanWhatsapp = whatsapp.replace(/[^0-9]/g, '') || '8801867666888';
 
   const langOptions: { code: 'en' | 'bn' | 'zh'; label: string }[] = [
     { code: 'en', label: 'EN' },
@@ -14,16 +24,16 @@ const TopBar = () => {
     <div className="bg-primary text-primary-foreground py-2 text-sm">
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-4 flex-wrap">
-          <a href="tel:+8801867666888" className="flex items-center gap-1.5 hover:text-sm-red transition-colors">
+          <a href={`tel:${cleanPhone}`} className="flex items-center gap-1.5 hover:text-sm-red transition-colors">
             <Phone className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">+8801867666888</span>
+            <span className="hidden sm:inline">{phone}</span>
           </a>
-          <a href="mailto:smtrade.int94@gmail.com" className="flex items-center gap-1.5 hover:text-sm-red transition-colors">
+          <a href={`mailto:${email}`} className="flex items-center gap-1.5 hover:text-sm-red transition-colors">
             <Mail className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">smtrade.int94@gmail.com</span>
+            <span className="hidden sm:inline">{email}</span>
           </a>
           <a
-            href="https://wa.me/8801867666888"
+            href={`https://wa.me/${cleanWhatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-sm-red transition-colors"
@@ -34,7 +44,7 @@ const TopBar = () => {
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden md:inline text-[hsl(var(--sm-gold))] font-medium text-xs">
-            1st Class Govt. Contractor, Supplier &amp; Importer
+            {badge}
           </span>
           <div className="flex items-center gap-1">
             {langOptions.map((opt) => (

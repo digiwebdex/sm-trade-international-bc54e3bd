@@ -130,9 +130,9 @@ const Navbar = () => {
 
         {/* Logo + Brand name */}
         <a href={resolveHref('#home')} className="flex items-center gap-2.5 group flex-shrink-0">
-          <img src={logo} alt="S. M. Trade International" className="h-9 w-9 rounded object-cover" />
+          <img src={logo} alt={companyName} className="h-9 w-9 rounded object-cover" />
           <span className="hidden sm:block font-bold text-base leading-tight whitespace-nowrap" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-            S. M. Trade International
+            {companyName}
           </span>
         </a>
 
