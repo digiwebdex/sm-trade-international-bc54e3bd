@@ -340,6 +340,14 @@ const AdminSettings = () => {
               <BilingualField section="contact" field="email" label="Email Address" />
               <BilingualField section="contact" field="address" label="Address" />
               <BilingualField section="contact" field="whatsapp_number" label="WhatsApp Number" />
+              <div className="border-t pt-4 mt-4">
+                <Label className="font-semibold text-sm mb-3 block">Social Media Links</Label>
+                <div className="space-y-3">
+                  <BilingualField section="contact" field="facebook" label="Facebook URL" />
+                  <BilingualField section="contact" field="linkedin" label="LinkedIn URL" />
+                  <BilingualField section="contact" field="instagram" label="Instagram URL" />
+                </div>
+              </div>
               <SaveButton section="contact" />
             </CardContent>
           </Card>
