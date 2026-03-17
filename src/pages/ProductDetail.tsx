@@ -34,6 +34,7 @@ const ProductDetail = () => {
 
   const [selectedDesign, setSelectedDesign] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   // ─── Data Fetching ───────────────────────────────────────────────────
