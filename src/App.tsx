@@ -47,6 +47,7 @@ const AdminSEO = lazy(() => import("./pages/admin/AdminSEO"));
 const AdminBackup = lazy(() => import("./pages/admin/AdminBackup"));
 const AdminAbout = lazy(() => import("./pages/admin/AdminAbout"));
 const AdminVariantGenerator = lazy(() => import("./pages/admin/AdminVariantGenerator"));
+const AdminQuoteRequests = lazy(() => import("./pages/admin/AdminQuoteRequests"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
