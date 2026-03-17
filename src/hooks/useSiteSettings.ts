@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type BilingualValue = { en: string; bn: string };
-type SettingsMap = Record<string, BilingualValue>;
+type SettingsMap = Record<string, BilingualValue | string>;
 
 export const useSiteSettings = () => {
   const { lang } = useLanguage();
@@ -19,14 +19,44 @@ export const useSiteSettings = () => {
       });
       return map;
     },
-    staleTime: 5 * 60 * 1000, // cache 5 min
+    staleTime: 5 * 60 * 1000,
   });
 
+  /**
+   * Get a setting value. Handles both bilingual {en, bn} and flat string/value formats.
+   * For bilingual: section=hero, field=title → settings.hero.title[lang]
+   * For flat: section=contact, field=phone → settings.contact.phone (string)
+   * Also handles nested key maps like {title_en, title_bn} format
+   */
   const get = (section: string, field: string, fallback = ''): string => {
-    const val = allSettings?.[section]?.[field];
-    if (!val) return fallback;
-    const result = (val as BilingualValue)?.[lang];
-    return result || fallback;
+    const sectionData = allSettings?.[section];
+    if (!sectionData) return fallback;
+
+    const val = sectionData[field];
+    if (!val) {
+      // Try lang-suffixed keys: field_en / field_bn
+      const langKey = `${field}_${lang}`;
+      const langVal = sectionData[langKey];
+      if (langVal && typeof langVal === 'string') return langVal;
+      // Try English fallback
+      const enVal = sectionData[`${field}_en`];
+      if (enVal && typeof enVal === 'string') return enVal;
+      return fallback;
+    }
+
+    // If it's a string directly (flat format like contact.phone = "+88...")
+    if (typeof val === 'string') return val;
+
+    // If it's a bilingual object {en, bn}
+    if (typeof val === 'object' && val !== null) {
+      const biVal = val as BilingualValue;
+      const result = biVal[lang];
+      if (result) return result;
+      // Fallback to English
+      if (biVal.en) return biVal.en;
+    }
+
+    return fallback;
   };
 
   return { get, isLoaded: !!allSettings };

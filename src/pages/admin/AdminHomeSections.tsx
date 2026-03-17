@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import {
   GripVertical, Eye, EyeOff, Pencil, Save, Loader2,
-  Layout, Users, Cog, Layers, Package, Building2, Calculator, FileText, Phone,
+  Layout, Users, Cog, Layers, Package, Building2, FileText, Phone,
 } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -27,7 +27,6 @@ const allSections: SectionConfig[] = [
   { id: 'process', label: 'How It Works', icon: Layers, settingsTab: 'process' },
   { id: 'products', label: 'Featured Products', icon: Package, adminPage: '/admin/products' },
   { id: 'clients', label: 'Clients', icon: Building2, adminPage: '/admin/clients' },
-  { id: 'calculator', label: 'Bulk Order Calculator', icon: Calculator },
   { id: 'quote', label: 'Quote Request Form', icon: FileText },
   { id: 'contact', label: 'Contact', icon: Phone, settingsTab: 'contact' },
 ];
