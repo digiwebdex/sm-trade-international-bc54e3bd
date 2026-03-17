@@ -41,6 +41,7 @@ const stats = [
 ];
 
 const SPEED = 3500;
+const CUBE_SIZE = 280; // px – height & depth of cube
 
 
 const HeroSection = () => {
