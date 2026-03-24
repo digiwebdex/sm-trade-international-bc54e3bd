@@ -23,6 +23,7 @@ const ProductDetail = () => {
   const { lang } = useLanguage();
   const { addItem } = useQuoteBasket();
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product-detail', id],
