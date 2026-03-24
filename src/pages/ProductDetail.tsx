@@ -447,7 +447,7 @@ const ProductDetail = () => {
             <div className="space-y-1.5">
               {[
                 lang === 'en' ? 'Custom branding & logo engraving available' : 'কাস্টম ব্র্যান্ডিং ও লোগো খোদাই উপলব্ধ',
-                lang === 'en' ? 'Bulk order discounts for 50+ units' : '৫০+ ইউনিটে বাল্ক অর্ডার ডিসকাউন্ট',
+                lang === 'en' ? 'Bulk order available for 50+ units' : '৫০+ ইউনিটে বাল্ক অর্ডার উপলব্ধ',
                 lang === 'en' ? 'Premium quality materials & craftsmanship' : 'প্রিমিয়াম মানের উপকরণ ও কারুশিল্প',
               ].map((h, i) => (
                 <div key={i} className="flex items-start gap-2 text-sm text-foreground/80">
