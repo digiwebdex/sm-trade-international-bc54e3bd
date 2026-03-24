@@ -541,41 +541,11 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {/* Bulk pricing */}
-            {unitPrice > 0 && (
-              <div className="rounded-lg border border-border/50 p-4 space-y-3 bg-card">
-                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                  <Calculator className="h-4 w-4 text-[hsl(var(--sm-gold))]" />
-                  {lang === 'en' ? 'Bulk Pricing' : 'বাল্ক মূল্য'}
-                </div>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {BULK_TIERS.map(tier => (
-                    <button
-                      key={tier.label}
-                      onClick={() => setQuantity(tier.min)}
-                      className={cn(
-                        'text-center p-2 rounded-lg text-xs transition-all border',
-                        currentTier.label === tier.label
-                          ? 'bg-[hsl(var(--sm-gold))]/10 border-[hsl(var(--sm-gold))]/50 font-semibold text-foreground'
-                          : 'bg-background border-border/50 text-muted-foreground hover:border-border',
-                      )}
-                    >
-                      <div className="font-medium">{tier.label}</div>
-                      <div className="text-[10px]">{tier.discount > 0 ? `${tier.discount}% off` : (lang === 'en' ? 'Base' : 'বেস')}</div>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border/30 text-sm">
-                  <span className="text-muted-foreground">{quantity} × ৳{discountedPrice.toFixed(0)}</span>
-                  <div className="text-right">
-                    <span className="font-bold text-lg">৳{totalPrice.toFixed(0)}</span>
-                    {savings > 0 && (
-                      <span className="block text-xs text-green-600">
-                        {lang === 'en' ? `You save ৳${savings.toFixed(0)}` : `সঞ্চয় ৳${savings.toFixed(0)}`}
-                      </span>
-                    )}
-                  </div>
-                </div>
+            {/* Total price summary */}
+            {unitPrice > 0 && quantity > 1 && (
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{quantity} × ৳{unitPrice.toFixed(0)}</span>
+                <span className="font-bold text-lg text-foreground">৳{totalPrice.toFixed(0)}</span>
               </div>
             )}
           </div>
