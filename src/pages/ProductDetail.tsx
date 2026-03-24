@@ -235,12 +235,6 @@ const ProductDetail = () => {
             <div className="h-px bg-border/50" />
 
 
-            {/* Product Code */}
-            {(product as any).product_code && (
-              <div className="text-xs text-muted-foreground">
-                {lang === 'en' ? 'Product Code' : 'পণ্য কোড'}: <span className="font-mono font-semibold text-foreground">{(product as any).product_code}</span>
-              </div>
-            )}
 
             <div className="h-px bg-border/50" />
 
