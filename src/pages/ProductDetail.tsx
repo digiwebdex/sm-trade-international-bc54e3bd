@@ -23,6 +23,7 @@ const ProductDetail = () => {
   const { lang } = useLanguage();
   const { addItem } = useQuoteBasket();
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product-detail', id],
@@ -71,6 +72,21 @@ const ProductDetail = () => {
     enabled: !!productId,
   });
 
+  const { data: variants = [] } = useQuery({
+    queryKey: ['product-variants', productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', productId!)
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!productId,
+  });
+
   const { data: relatedProducts = [] } = useQuery({
     queryKey: ['related-products', product?.category_id],
     queryFn: async () => {
@@ -87,7 +103,7 @@ const ProductDetail = () => {
     enabled: !!product?.category_id,
   });
 
-  // Build gallery images
+  // Build gallery images - if a variant is selected, show its image first
   const galleryImages = useMemo((): TypedImage[] => {
     const result: TypedImage[] = [];
     const seen = new Set<string>();
@@ -96,6 +112,15 @@ const ProductDetail = () => {
       seen.add(img.url);
       result.push(img);
     };
+
+    // If a variant is selected and has an image, show it first
+    if (selectedVariantId) {
+      const sv = variants.find((v: any) => v.id === selectedVariantId);
+      if (sv?.image_url) {
+        add({ id: sv.id, url: sv.image_url, image_type: 'main', variant_id: sv.id });
+      }
+    }
+
     (productImages as any[]).forEach(img => add({
       id: img.id, url: img.image_url, image_type: img.image_type ?? 'main', variant_id: null,
     }));
@@ -103,9 +128,10 @@ const ProductDetail = () => {
       add({ url: product.image_url, image_type: 'main' });
     }
     return result;
-  }, [productImages, product]);
+  }, [productImages, product, selectedVariantId, variants]);
 
-  const unitPrice = Number((product as any)?.unit_price) || 0;
+  const selectedVariant = variants.find((v: any) => v.id === selectedVariantId);
+  const unitPrice = Number(selectedVariant?.unit_price || (product as any)?.unit_price) || 0;
   const totalPrice = unitPrice * quantity;
 
   const handleAddToQuote = () => {
@@ -232,6 +258,46 @@ const ProductDetail = () => {
 
             {shortDesc && (
               <p className="text-sm text-muted-foreground">{shortDesc}</p>
+            )}
+
+            {/* Color Variants */}
+            {variants.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-foreground">
+                  {lang === 'en' ? 'Color' : 'রঙ'}:{' '}
+                  <span className="font-bold">
+                    {selectedVariant
+                      ? (selectedVariant.color_name || selectedVariant.variant_label_en)
+                      : (lang === 'en' ? 'Select a color' : 'একটি রঙ নির্বাচন করুন')}
+                  </span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {variants.map((v: any) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setSelectedVariantId(v.id === selectedVariantId ? null : v.id)}
+                      className={cn(
+                        'relative w-16 h-16 rounded border-2 overflow-hidden transition-all bg-white',
+                        selectedVariantId === v.id
+                          ? 'border-primary ring-1 ring-primary'
+                          : 'border-border/50 hover:border-foreground/40'
+                      )}
+                      title={v.color_name || v.variant_label_en}
+                    >
+                      {v.image_url ? (
+                        <img src={v.image_url} alt={v.color_name || v.variant_label_en} className="w-full h-full object-cover" />
+                      ) : v.color_hex ? (
+                        <div className="w-full h-full" style={{ backgroundColor: v.color_hex }} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground">
+                          {v.variant_label_en?.slice(0, 3)}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             <div className="h-px bg-border/50" />

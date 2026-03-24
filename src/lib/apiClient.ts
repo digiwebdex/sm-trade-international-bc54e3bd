@@ -266,13 +266,48 @@ class QueryBuilder {
 
   private async _doDelete(): Promise<{ data: any; error: any }> {
     const idFilter = this._filters.find(f => f.column === 'id');
-    if (!idFilter) throw new Error('delete() requires .eq("id", value)');
-    const resp = await fetch(`${tableUrl(this.table)}/${idFilter.value}`, {
-      method: 'DELETE',
-      headers: getHeaders(),
-    });
-    if (!resp.ok) throw new Error(await resp.text());
-    return { data: null, error: null };
+    if (idFilter) {
+      const resp = await fetch(`${tableUrl(this.table)}/${idFilter.value}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      return { data: null, error: null };
+    }
+    // Support delete by product_id (for variants/images cleanup)
+    const prodFilter = this._filters.find(f => f.column === 'product_id');
+    if (prodFilter) {
+      const resp = await fetch(`${tableUrl(this.table)}/by-product/${prodFilter.value}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      return { data: null, error: null };
+    }
+    // Support delete by .in('product_id', [...])
+    const inFilter = this._inFilters.find(f => f.column === 'product_id');
+    if (inFilter) {
+      // Delete one by one
+      for (const pid of inFilter.values) {
+        await fetch(`${tableUrl(this.table)}/by-product/${pid}`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+        });
+      }
+      return { data: null, error: null };
+    }
+    // Support delete by .in('id', [...])
+    const inIdFilter = this._inFilters.find(f => f.column === 'id');
+    if (inIdFilter) {
+      for (const id of inIdFilter.values) {
+        await fetch(`${tableUrl(this.table)}/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+        });
+      }
+      return { data: null, error: null };
+    }
+    throw new Error('delete() requires .eq("id", value) or .eq("product_id", value)');
   }
 
   private async _doUpsert(): Promise<{ data: any; error: any }> {

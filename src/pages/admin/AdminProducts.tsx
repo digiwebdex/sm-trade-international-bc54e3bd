@@ -13,6 +13,7 @@ import { Plus, Pencil, Trash2, Upload, Image as ImageIcon, Search, ChevronLeft, 
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import BulkUploadZone, { type FileItem } from '@/components/admin/BulkUploadZone';
+import ColorVariantManager from '@/components/admin/ColorVariantManager';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 12;
@@ -447,6 +448,11 @@ const AdminProducts = () => {
                     </Button>
                   )}
                 </div>
+
+                {/* Color Variants (only show when editing existing product) */}
+                {editId && (
+                  <ColorVariantManager productId={editId} basePrice={form.unit_price} />
+                )}
 
                 <div className="flex items-center gap-2">
                   <Switch checked={form.is_active} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />

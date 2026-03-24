@@ -89,6 +89,24 @@ router.use('/products', createCrudRoutes('products'));
 router.use('/product-variants', createCrudRoutes('product_variants'));
 router.use('/product-images', createCrudRoutes('product_images'));
 router.use('/product-variant-images', createCrudRoutes('product_variant_images'));
+
+// ── Delete variants/images by product_id ────────────────────
+router.delete('/product-variants/by-product/:productId', authMiddleware, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM product_variants WHERE product_id = $1', [req.params.productId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+router.delete('/product-images/by-product/:productId', authMiddleware, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM product_images WHERE product_id = $1', [req.params.productId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 router.use('/hero-slides', createCrudRoutes('hero_slides'));
 router.use('/gallery', createCrudRoutes('gallery'));
 router.use('/client-logos', createCrudRoutes('client_logos'));
