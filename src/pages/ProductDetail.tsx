@@ -6,7 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuoteBasket } from '@/contexts/QuoteBasketContext';
 import {
   ArrowLeft, ShoppingBag, MessageCircle, Share2,
-  ChevronRight, Minus, Plus, Calculator, Package, CheckCircle2
+  ChevronRight, Minus, Plus, Package, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,12 +19,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { isUUID, productSlug } from '@/lib/productSlug';
 
-const BULK_TIERS = [
-  { min: 1, max: 49, discount: 0, label: '1–49' },
-  { min: 50, max: 99, discount: 5, label: '50–99' },
-  { min: 100, max: 499, discount: 10, label: '100–499' },
-  { min: 500, max: Infinity, discount: 15, label: '500+' },
-];
+
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -198,10 +193,7 @@ const ProductDetail = () => {
 
   // ─── Pricing ──────────────────────────────────────────────────────────
   const unitPrice = activeVariant?.unit_price ? Number(activeVariant.unit_price) : 0;
-  const currentTier = BULK_TIERS.find(t => quantity >= t.min && quantity <= t.max) ?? BULK_TIERS[0];
-  const discountedPrice = unitPrice > 0 ? unitPrice * (1 - currentTier.discount / 100) : 0;
-  const totalPrice = discountedPrice * quantity;
-  const savings = unitPrice > 0 ? (unitPrice - discountedPrice) * quantity : 0;
+  const totalPrice = unitPrice * quantity;
 
   // ─── Handlers ─────────────────────────────────────────────────────────
   const handleDesignSelect = (design: string) => {
@@ -351,20 +343,7 @@ const ProductDetail = () => {
             {/* Price section — Amazon style */}
             {unitPrice > 0 && (
               <div className="space-y-1">
-                {currentTier.discount > 0 && (
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-medium text-destructive">-{currentTier.discount}%</span>
-                    <span className="text-2xl font-medium text-foreground">৳{discountedPrice.toFixed(0)}</span>
-                  </div>
-                )}
-                {currentTier.discount === 0 && (
-                  <span className="text-2xl font-medium text-foreground">৳{unitPrice.toFixed(0)}</span>
-                )}
-                {currentTier.discount > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    M.R.P.: <span className="line-through">৳{unitPrice.toFixed(0)}</span>
-                  </div>
-                )}
+                <span className="text-2xl font-medium text-foreground">৳{unitPrice.toFixed(0)}</span>
                 <p className="text-xs text-muted-foreground">{lang === 'en' ? 'Inclusive of all taxes' : 'সকল কর সহ'}</p>
               </div>
             )}
@@ -485,7 +464,7 @@ const ProductDetail = () => {
               {/* Price in buy box */}
               {unitPrice > 0 && (
                 <div className="text-xl font-medium text-foreground">
-                  ৳{discountedPrice.toFixed(0)}<span className="text-xs align-top text-muted-foreground ml-0.5">00</span>
+                  ৳{unitPrice.toFixed(0)}<span className="text-xs align-top text-muted-foreground ml-0.5">00</span>
                 </div>
               )}
 
@@ -557,41 +536,11 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {/* Bulk pricing */}
-            {unitPrice > 0 && (
-              <div className="rounded-lg border border-border/50 p-4 space-y-3 bg-card">
-                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                  <Calculator className="h-4 w-4 text-[hsl(var(--sm-gold))]" />
-                  {lang === 'en' ? 'Bulk Pricing' : 'বাল্ক মূল্য'}
-                </div>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {BULK_TIERS.map(tier => (
-                    <button
-                      key={tier.label}
-                      onClick={() => setQuantity(tier.min)}
-                      className={cn(
-                        'text-center p-2 rounded-lg text-xs transition-all border',
-                        currentTier.label === tier.label
-                          ? 'bg-[hsl(var(--sm-gold))]/10 border-[hsl(var(--sm-gold))]/50 font-semibold text-foreground'
-                          : 'bg-background border-border/50 text-muted-foreground hover:border-border',
-                      )}
-                    >
-                      <div className="font-medium">{tier.label}</div>
-                      <div className="text-[10px]">{tier.discount > 0 ? `${tier.discount}% off` : (lang === 'en' ? 'Base' : 'বেস')}</div>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border/30 text-sm">
-                  <span className="text-muted-foreground">{quantity} × ৳{discountedPrice.toFixed(0)}</span>
-                  <div className="text-right">
-                    <span className="font-bold text-lg">৳{totalPrice.toFixed(0)}</span>
-                    {savings > 0 && (
-                      <span className="block text-xs text-green-600">
-                        {lang === 'en' ? `You save ৳${savings.toFixed(0)}` : `সঞ্চয় ৳${savings.toFixed(0)}`}
-                      </span>
-                    )}
-                  </div>
-                </div>
+            {/* Total price summary */}
+            {unitPrice > 0 && quantity > 1 && (
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{quantity} × ৳{unitPrice.toFixed(0)}</span>
+                <span className="font-bold text-lg text-foreground">৳{totalPrice.toFixed(0)}</span>
               </div>
             )}
           </div>
