@@ -413,6 +413,19 @@ const InlineVariantManager = ({ staged, onStaged, productCode, productId }: Inli
                   </div>
                 </div>
 
+                {/* Price */}
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Price (৳)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={v.unit_price}
+                    onChange={e => updateCard(v.id, { unit_price: Math.max(0, Number(e.target.value)) })}
+                    placeholder="0"
+                    className="h-8 text-xs mt-0.5"
+                  />
+                </div>
+
                 {/* Stock */}
                 <div>
                   <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Stock</label>
