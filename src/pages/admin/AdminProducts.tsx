@@ -519,11 +519,12 @@ interface ProductForm {
   image_url: string;
   is_active: boolean;
   product_code: string;
+  base_price: number;
 }
 
 const emptyForm: ProductForm = {
   name_en: '', name_bn: '', description_en: '', description_bn: '',
-  category_id: '', image_url: '', is_active: true, product_code: '',
+  category_id: '', image_url: '', is_active: true, product_code: '', base_price: 0,
 };
 
 const slugify = (str: string) =>
