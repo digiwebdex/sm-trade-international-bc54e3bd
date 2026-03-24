@@ -105,8 +105,6 @@ const ProductDetail = () => {
     return result;
   }, [productImages, product]);
 
-  const unitPrice = Number((product as any)?.unit_price) || 0;
-  const totalPrice = unitPrice * quantity;
 
   const handleAddToQuote = () => {
     if (!product) return;
