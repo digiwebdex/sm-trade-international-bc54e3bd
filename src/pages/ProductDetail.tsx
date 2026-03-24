@@ -276,6 +276,7 @@ const ProductDetail = () => {
                     <button
                       key={v.id}
                       type="button"
+                      onMouseEnter={() => setSelectedVariantId(v.id)}
                       onClick={() => setSelectedVariantId(v.id === selectedVariantId ? null : v.id)}
                       className={cn(
                         'relative w-[104px] h-[104px] rounded-lg border-2 overflow-hidden transition-all bg-white',
