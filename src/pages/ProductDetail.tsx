@@ -302,13 +302,6 @@ const ProductDetail = () => {
 
             <div className="h-px bg-border/50" />
 
-            {/* Price */}
-            {unitPrice > 0 && (
-              <div className="space-y-1">
-                <span className="text-3xl font-bold text-foreground">৳{unitPrice.toLocaleString()}</span>
-                <p className="text-xs text-muted-foreground">{lang === 'en' ? 'Inclusive of all taxes' : 'সকল কর সহ'}</p>
-              </div>
-            )}
 
             {/* Product Code */}
             {(product as any).product_code && (
@@ -351,12 +344,6 @@ const ProductDetail = () => {
 
             {/* Buy Box */}
             <div className="rounded-lg border border-border/50 p-4 space-y-3 bg-card">
-              {unitPrice > 0 && (
-                <div className="text-xl font-medium text-foreground">
-                  ৳{unitPrice.toLocaleString()}
-                </div>
-              )}
-
               <div className="text-lg font-medium text-green-600">
                 {lang === 'en' ? 'In stock' : 'স্টকে আছে'}
               </div>
@@ -396,13 +383,6 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {/* Total price summary */}
-            {unitPrice > 0 && quantity > 1 && (
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>{quantity} × ৳{unitPrice.toLocaleString()}</span>
-                <span className="font-bold text-lg text-foreground">৳{totalPrice.toLocaleString()}</span>
-              </div>
-            )}
           </div>
         </div>
 
