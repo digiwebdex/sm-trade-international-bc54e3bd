@@ -394,9 +394,9 @@ const Catalog = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filtered.map((p, i) => {
                     const link = getProductLink(p);
-                    const colors = p.id ? variantsByProduct[p.id] || [] : [];
                     const CardWrapper = link ? Link : 'div';
                     const cardProps = link ? { to: link } : {};
+                    const price = (p as any).price || 0;
 
                     return (
                       <CardWrapper
@@ -423,21 +423,11 @@ const Catalog = () => {
                               {lang === 'en' ? (p.categoryLabelEn || categories.find(c => c.id === p.category)?.labelEn || '') : (p.categoryLabelBn || categories.find(c => c.id === p.category)?.labelBn || '')}
                             </span>
                           </div>
-                          {colors.length > 1 && (
-                            <div className="absolute bottom-3 right-3 flex gap-1">
-                              {colors.slice(0, 5).map((c, ci) => (
-                                <div
-                                  key={ci}
-                                  className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                                  style={{ backgroundColor: c.color_hex || '#ccc' }}
-                                  title={c.color_name || ''}
-                                />
-                              ))}
-                              {colors.length > 5 && (
-                                <div className="w-4 h-4 rounded-full bg-muted border-2 border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-muted-foreground">
-                                  +{colors.length - 5}
-                                </div>
-                              )}
+                          {price > 0 && (
+                            <div className="absolute bottom-3 right-3">
+                              <span className="bg-background/90 backdrop-blur-sm text-foreground text-sm font-bold px-3 py-1.5 rounded-full shadow-sm">
+                                ৳{price.toLocaleString()}
+                              </span>
                             </div>
                           )}
                         </div>
