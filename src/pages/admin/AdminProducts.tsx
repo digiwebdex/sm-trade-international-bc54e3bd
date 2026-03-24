@@ -207,6 +207,7 @@ const InlineVariantManager = ({ staged, onStaged, productCode, productId }: Inli
       color_name: '',
       color_hex: '#000000',
       stock: 999,
+      unit_price: 0,
       is_active: true,
       sku_preview: generateSku(productCode, 'Design A', '#000000'),
     };
