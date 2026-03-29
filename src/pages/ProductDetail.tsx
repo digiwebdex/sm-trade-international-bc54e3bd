@@ -362,7 +362,7 @@ const ProductDetail = () => {
                   </button>
                   <Input type="number" min={1} value={quantity}
                     onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-14 text-center border-0 rounded-none h-8 focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-sm" />
+                    className="w-24 text-center border-0 rounded-none h-8 focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-sm" />
                   <button onClick={() => setQuantity(quantity + 1)}
                     className="px-2.5 py-1.5 hover:bg-muted transition-colors border-l border-border">
                     <Plus className="h-3.5 w-3.5" />
