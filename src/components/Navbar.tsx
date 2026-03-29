@@ -105,15 +105,50 @@ const Navbar = () => {
     }
   };
 
-  const allLinks = [
-    { key: 'nav.home', href: '#home', label: 'Home' },
-    { key: 'nav.about', href: '/about', isRoute: true, label: 'About' },
-    { key: 'nav.services', href: '#services', label: 'Services' },
-    { key: 'nav.products', href: '#products', label: 'Products' },
-    { key: 'nav.gallery', href: '/gallery', isRoute: true, label: 'Gallery' },
-    { key: 'nav.configurator', href: '/configurator', isRoute: true, label: 'Configure' },
-    { key: 'nav.contact', href: '#contact', label: 'Contact' },
+  // Fetch dynamic menu from site_settings
+  const { data: menuSetting } = useQuery({
+    queryKey: ['site-settings', 'nav_menu'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('setting_key', 'nav_menu')
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const defaultLinks = [
+    { key: 'nav.home', href: '#home', type: 'hash' as const, label_en: 'Home', label_bn: 'হোম', is_active: true },
+    { key: 'nav.about', href: '/about', type: 'route' as const, label_en: 'About', label_bn: 'আমাদের সম্পর্কে', is_active: true },
+    { key: 'nav.services', href: '#services', type: 'hash' as const, label_en: 'Services', label_bn: 'সেবা', is_active: true },
+    { key: 'nav.products', href: '#products', type: 'hash' as const, label_en: 'Products', label_bn: 'পণ্য', is_active: true },
+    { key: 'nav.gallery', href: '/gallery', type: 'route' as const, label_en: 'Gallery', label_bn: 'গ্যালারি', is_active: true },
+    { key: 'nav.configurator', href: '/configurator', type: 'route' as const, label_en: 'Configure', label_bn: 'কনফিগার', is_active: true },
+    { key: 'nav.contact', href: '#contact', type: 'hash' as const, label_en: 'Contact', label_bn: 'যোগাযোগ', is_active: true },
   ];
+
+  const menuItems = (() => {
+    const saved = (menuSetting?.setting_value as any)?.items;
+    if (Array.isArray(saved) && saved.length > 0) {
+      return saved
+        .filter((i: any) => i.is_active)
+        .sort((a: any, b: any) => a.sort_order - b.sort_order)
+        .map((i: any) => ({
+          key: `nav.${i.id}`,
+          href: i.href,
+          type: i.type as 'hash' | 'route' | 'external',
+          label_en: i.label_en,
+          label_bn: i.label_bn || i.label_en,
+          is_active: i.is_active,
+        }));
+    }
+    return defaultLinks;
+  })();
+
+  const allLinks = menuItems;
 
   const categoriesLabel = lang === 'en' ? 'Categories' : 'ক্যাটাগরি';
 
@@ -195,15 +230,26 @@ const Navbar = () => {
         {/* Desktop nav links — right aligned */}
         <div className="hidden md:flex items-center gap-0 flex-shrink-0">
           {allLinks.map(l =>
-            (l as any).isRoute ? (
+            l.type === 'route' ? (
               <Link
                 key={l.key}
                 to={l.href}
                 className="relative px-3 py-2 font-medium text-[13px] text-foreground/75 hover:text-foreground transition-colors duration-200 group whitespace-nowrap"
               >
-                {t(l.key)}
+                {lang === 'en' ? l.label_en : l.label_bn}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[hsl(var(--sm-gold))] group-hover:w-3/4 transition-all duration-300 rounded-full" />
               </Link>
+            ) : l.type === 'external' ? (
+              <a
+                key={l.key}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative px-3 py-2 font-medium text-[13px] text-foreground/75 hover:text-foreground transition-colors duration-200 group whitespace-nowrap"
+              >
+                {lang === 'en' ? l.label_en : l.label_bn}
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[hsl(var(--sm-gold))] group-hover:w-3/4 transition-all duration-300 rounded-full" />
+              </a>
             ) : (
               <a
                 key={l.key}
@@ -211,7 +257,7 @@ const Navbar = () => {
                 onMouseEnter={!isHome ? prefetchHome : undefined}
                 className="relative px-3 py-2 font-medium text-[13px] text-foreground/75 hover:text-foreground transition-colors duration-200 group whitespace-nowrap"
               >
-                {t(l.key)}
+                {lang === 'en' ? l.label_en : l.label_bn}
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[hsl(var(--sm-gold))] group-hover:w-3/4 transition-all duration-300 rounded-full" />
               </a>
             )
@@ -314,15 +360,26 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 pb-4">
           {allLinks.map(l =>
-            (l as any).isRoute ? (
+            l.type === 'route' ? (
               <Link
                 key={l.key}
                 to={l.href}
                 onClick={() => setMobileOpen(false)}
                 className="block py-3 font-medium text-sm hover:text-primary transition-colors border-b border-border/30 last:border-0"
               >
-                {t(l.key)}
+                {lang === 'en' ? l.label_en : l.label_bn}
               </Link>
+            ) : l.type === 'external' ? (
+              <a
+                key={l.key}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                className="block py-3 font-medium text-sm hover:text-primary transition-colors border-b border-border/30 last:border-0"
+              >
+                {lang === 'en' ? l.label_en : l.label_bn}
+              </a>
             ) : (
               <a
                 key={l.key}
@@ -330,7 +387,7 @@ const Navbar = () => {
                 onClick={() => setMobileOpen(false)}
                 className="block py-3 font-medium text-sm hover:text-primary transition-colors border-b border-border/30 last:border-0"
               >
-                {t(l.key)}
+                {lang === 'en' ? l.label_en : l.label_bn}
               </a>
             )
           )}
