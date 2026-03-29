@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Plus, Trash2, GripVertical, Save, Facebook, Linkedin, Instagram, Twitter, Youtube, Globe } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Save, Facebook, Linkedin, Instagram, Twitter, Youtube, Globe, Upload, X, ImageIcon } from 'lucide-react';
 
 /* ─── types ─── */
 interface QuickLink {
@@ -72,6 +72,9 @@ const AdminFooter = () => {
     { platform: 'instagram', url: '', icon: 'instagram' },
   ]);
   const [texts, setTexts] = useState<FooterTexts>(defaultTexts);
+  const [bgImage, setBgImage] = useState('/images/footer-bg.jpg');
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const bgFileRef = useRef<HTMLInputElement>(null);
 
   // Load existing settings
   const { data: settings } = useQuery({
