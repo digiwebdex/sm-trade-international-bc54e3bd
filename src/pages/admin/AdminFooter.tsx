@@ -148,11 +148,11 @@ const AdminFooter = () => {
       // Save quick links
       await upsertSetting('footer_links', links);
 
-      // Save footer texts
+      // Save footer texts + bg image
       await upsertSetting('footer', {
         description_en: texts.description_en,
         description_bn: texts.description_bn,
-        description: texts.description_en, // backward compat
+        description: texts.description_en,
         copyright_en: texts.copyright_en,
         copyright_bn: texts.copyright_bn,
         copyright: texts.copyright_en,
@@ -160,6 +160,7 @@ const AdminFooter = () => {
         quicklinks_title_bn: texts.quicklinks_title_bn,
         contactinfo_title_en: texts.contactinfo_title_en,
         contactinfo_title_bn: texts.contactinfo_title_bn,
+        bg_image: bgImage,
       });
 
       // Update social URLs in contact settings
