@@ -15,7 +15,7 @@ let hasAnimated = false;
 // Stats are now fetched from site settings
 
 const SPEED = 3500;
-const CUBE_SIZE = 280; // px – height & depth of cube
+const CUBE_SIZE = 280;
 
 
 const HeroSection = () => {
