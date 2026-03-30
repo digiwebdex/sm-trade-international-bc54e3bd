@@ -324,7 +324,11 @@ const ProductImageManager = ({ productId, variantId = null, featuredImageUrl, on
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={e => { if (e.target.files?.[0]) handleUpload(e.target.files[0], view.type); }}
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) handleUpload(file, view.type);
+                              e.currentTarget.value = '';
+                            }}
                           />
                         </label>
                         <button
