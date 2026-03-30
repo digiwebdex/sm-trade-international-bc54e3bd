@@ -360,7 +360,8 @@ function createStorageBucket(bucket: string) {
         return { data: null, error: { message: err.error || 'Upload failed' } };
       }
       const data = await resp.json();
-      return { data, error: null };
+      // Return publicUrl so callers can use it directly
+      return { data: { path: data.path, publicUrl: data.publicUrl }, error: null };
     },
     getPublicUrl(filePath: string) {
       const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || '';
