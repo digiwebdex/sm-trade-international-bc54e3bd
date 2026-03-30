@@ -6,6 +6,19 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
+function sanitizeRelativePath(input = '') {
+  const normalized = path.posix
+    .normalize(String(input).replace(/\\/g, '/'))
+    .replace(/^\/+/, '')
+    .replace(/^(\.\.\/)+/, '');
+
+  return normalized === '.' ? '' : normalized;
+}
+
+function getRequestedPath(req) {
+  return sanitizeRelativePath(typeof req.query.path === 'string' ? req.query.path : '');
+}
+
 // Ensure upload directories exist
 const UPLOAD_BASE = path.join(__dirname, '..', 'uploads');
 const BUCKETS = ['cms-images', 'products', 'quote-attachments'];
@@ -17,14 +30,38 @@ BUCKETS.forEach(b => {
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
     const bucket = req.params.bucket || 'cms-images';
-    const subPath = req.query.path ? path.dirname(req.query.path) : '';
+    const requestedPath = getRequestedPath(req);
+    const subPath = requestedPath ? path.posix.dirname(requestedPath) : '';
     const dir = path.join(UPLOAD_BASE, bucket, subPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    req.uploadDir = dir;
     cb(null, dir);
   },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  filename: (req, file, cb) => {
+    const requestedPath = getRequestedPath(req);
+    const hintedName = requestedPath ? path.posix.basename(requestedPath) : '';
+
+    if (hintedName) {
+      const originalExt = path.extname(file.originalname).toLowerCase();
+      const hintedExt = path.extname(hintedName).toLowerCase();
+      const ext = hintedExt || originalExt;
+      const baseName = path
+        .basename(hintedName, hintedExt)
+        .replace(/[^a-zA-Z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || `file-${Date.now()}`;
+
+      const uploadDir = req.uploadDir || path.join(UPLOAD_BASE, req.params.bucket || 'cms-images');
+      const preferredName = `${baseName}${ext}`;
+      const finalName = fs.existsSync(path.join(uploadDir, preferredName))
+        ? `${baseName}-${Date.now()}${ext}`
+        : preferredName;
+
+      return cb(null, finalName);
+    }
+
+    const ext = path.extname(file.originalname).toLowerCase();
+    return cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   },
 });
 
