@@ -113,14 +113,14 @@ const AdminProducts = () => {
     setUploading(true);
     const ext = file.name.split('.').pop();
     const path = `products/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       setUploading(false);
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    setForm(f => ({ ...f, image_url: urlData.publicUrl }));
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    setForm(f => ({ ...f, image_url: publicUrl }));
     setUploading(false);
   };
 
@@ -248,12 +248,12 @@ const AdminProducts = () => {
       try {
         const ext = updated[i].file.name.split('.').pop();
         const path = `products/${Date.now()}-${i}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
+        const { data: uploadData, error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
+        const bulkPublicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
         const name = updated[i].file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         const { error: insertErr } = await supabase.from('products').insert({
-          name_en: name, name_bn: '', image_url: urlData.publicUrl,
+          name_en: name, name_bn: '', image_url: bulkPublicUrl,
           category_id: bulkCategory || null, is_active: true,
           sort_order: baseOrder + successCount, product_code: slugify(name),
         } as any);
