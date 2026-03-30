@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
 const path = require('path');
 
 require('dotenv').config({
@@ -26,7 +27,45 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadsDir = path.join(__dirname, 'uploads');
+
+function resolveLegacyUpload(requestedPath) {
+  const normalized = path.posix
+    .normalize(String(requestedPath || '').replace(/\\/g, '/'))
+    .replace(/^\/+/, '')
+    .replace(/^(\.\.\/)+/, '');
+
+  if (!normalized) return null;
+
+  const exactPath = path.join(uploadsDir, normalized);
+  if (fs.existsSync(exactPath)) return exactPath;
+
+  const dir = path.dirname(exactPath);
+  if (!fs.existsSync(dir)) return null;
+
+  const ext = path.extname(exactPath).toLowerCase();
+  const baseName = path.basename(exactPath, ext).toLowerCase();
+  const timestamp = baseName.match(/\d{10,}/)?.[0];
+
+  const matches = fs.readdirSync(dir).filter((fileName) => {
+    if (path.extname(fileName).toLowerCase() !== ext) return false;
+    const lower = fileName.toLowerCase();
+    if (timestamp) return lower.includes(timestamp);
+    return lower.includes(baseName);
+  });
+
+  return matches.length === 1 ? path.join(dir, matches[0]) : null;
+}
+
+app.use('/uploads', express.static(uploadsDir));
+app.get(/^\/uploads\/(.+)$/, (req, res) => {
+  const resolvedPath = resolveLegacyUpload(req.params[0]);
+  if (resolvedPath) {
+    return res.sendFile(resolvedPath);
+  }
+
+  return res.status(404).json({ error: 'File not found' });
+});
 
 // ── Health check ────────────────────────────────────────────
 app.get('/api/health', async (_req, res) => {
