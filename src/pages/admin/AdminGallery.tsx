@@ -53,14 +53,14 @@ const AdminGallery = () => {
     setUploading(true);
     const ext = file.name.split('.').pop();
     const path = `gallery/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       setUploading(false);
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    setForm(f => ({ ...f, image_url: urlData.publicUrl }));
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    setForm(f => ({ ...f, image_url: publicUrl }));
     setUploading(false);
   };
 
@@ -125,23 +125,23 @@ const AdminGallery = () => {
       try {
         const ext = updated[i].file.name.split('.').pop();
         const path = `gallery/${Date.now()}-${i}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
+        const { data: bulkUploadData, error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
+        const bulkPublicUrl = bulkUploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
 
         const title = updated[i].file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
         const { error: insertErr } = await supabase.from('gallery').insert({
           title_en: title,
           title_bn: '',
-          image_url: urlData.publicUrl,
+          image_url: bulkPublicUrl,
           category: bulkCategory,
           is_active: true,
           sort_order: baseOrder + successCount,
         });
         if (insertErr) throw insertErr;
 
-        updated[i] = { ...updated[i], status: 'done', url: urlData.publicUrl };
+        updated[i] = { ...updated[i], status: 'done', url: bulkPublicUrl };
         successCount++;
       } catch (err: any) {
         updated[i] = { ...updated[i], status: 'error', error: err.message };

@@ -112,14 +112,14 @@ const AdminSEO = () => {
     setUploading(slug);
     const ext = file.name.split('.').pop();
     const path = `seo/${slug}-og-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       setUploading(null);
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    updateForm(slug, 'og_image_url', urlData.publicUrl);
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    updateForm(slug, 'og_image_url', publicUrl);
     setUploading(null);
     toast({ title: 'OG Image uploaded' });
   };

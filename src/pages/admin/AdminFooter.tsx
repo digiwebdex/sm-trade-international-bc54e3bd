@@ -235,10 +235,10 @@ const AdminFooter = () => {
               try {
                 const ext = file.name.split('.').pop();
                 const path = `footer/footer-bg-${Date.now()}.${ext}`;
-                const { error } = await supabase.storage.from('cms-images').upload(path, file);
+                const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
                 if (error) throw error;
-                const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-                setBgImage(urlData.publicUrl);
+                const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+                setBgImage(publicUrl);
                 toast.success('Background uploaded! Click Save All to apply.');
               } catch (err: any) {
                 toast.error(err.message);
