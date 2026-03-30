@@ -40,14 +40,14 @@ const AdminClients = () => {
     setUploading(true);
     const ext = file.name.split('.').pop();
     const path = `clients/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       setUploading(false);
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    setForm(f => ({ ...f, logo_url: urlData.publicUrl }));
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    setForm(f => ({ ...f, logo_url: publicUrl }));
     setUploading(false);
   };
 

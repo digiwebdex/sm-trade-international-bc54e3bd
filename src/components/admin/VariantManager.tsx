@@ -200,18 +200,18 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
       try {
         const ext = updated[i].file.name.split('.').pop();
         const path = `variant-images/${galleryVariantId}/${Date.now()}-${i}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
+        const { data: bulkUploadData, error: uploadErr } = await supabase.storage.from('cms-images').upload(path, updated[i].file);
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
+        const bulkPublicUrl = bulkUploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
 
         const { error: insertErr } = await supabase.from('product_variant_images').insert({
           variant_id: galleryVariantId,
-          image_url: urlData.publicUrl,
+          image_url: bulkPublicUrl,
           sort_order: baseOrder + successCount,
         });
         if (insertErr) throw insertErr;
 
-        updated[i] = { ...updated[i], status: 'done', url: urlData.publicUrl };
+        updated[i] = { ...updated[i], status: 'done', url: bulkPublicUrl };
         successCount++;
       } catch (err: any) {
         updated[i] = { ...updated[i], status: 'error', error: err.message };
@@ -227,13 +227,13 @@ const VariantManager = ({ productId }: VariantManagerProps) => {
   const handleMainImageUpload = async (file: File) => {
     const ext = file.name.split('.').pop();
     const path = `variants/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    setForm(f => ({ ...f, image_url: urlData.publicUrl }));
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    setForm(f => ({ ...f, image_url: publicUrl }));
   };
 
   const galleryVariant = variants.find(v => v.id === galleryVariantId);

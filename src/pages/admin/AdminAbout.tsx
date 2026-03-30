@@ -172,14 +172,14 @@ const AdminAbout = () => {
     setUploading(true);
     const ext = file.name.split('.').pop();
     const path = `about/company-image-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('cms-images').upload(path, file);
+    const { data: uploadData, error } = await supabase.storage.from('cms-images').upload(path, file);
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       setUploading(false);
       return;
     }
-    const { data: urlData } = supabase.storage.from('cms-images').getPublicUrl(path);
-    setCompanyImage(urlData.publicUrl);
+    const publicUrl = uploadData?.publicUrl || supabase.storage.from('cms-images').getPublicUrl(path).data.publicUrl;
+    setCompanyImage(publicUrl);
     setUploading(false);
     toast({ title: 'Company image uploaded' });
   };
