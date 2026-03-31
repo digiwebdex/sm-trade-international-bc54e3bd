@@ -5,6 +5,7 @@ import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
 import ProcessSection from '@/components/ProcessSection';
 import ProductsSection from '@/components/ProductsSection';
+import ProductSlider from '@/components/ProductSlider';
 import ClientsSection from '@/components/ClientsSection';
 import QuoteRequestForm from '@/components/QuoteRequestForm';
 import ContactSection from '@/components/ContactSection';
