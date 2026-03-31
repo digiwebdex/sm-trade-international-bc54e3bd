@@ -127,6 +127,7 @@ const Navbar = () => {
     { key: 'nav.products', href: '#products', type: 'hash' as const, label_en: 'Products', label_bn: 'পণ্য', is_active: true },
     { key: 'nav.gallery', href: '/gallery', type: 'route' as const, label_en: 'Gallery', label_bn: 'গ্যালারি', is_active: true },
     { key: 'nav.configurator', href: '/configurator', type: 'route' as const, label_en: 'Configure', label_bn: 'কনফিগার', is_active: true },
+    { key: 'nav.3dpreview', href: '/3d-preview', type: 'route' as const, label_en: '3D Preview', label_bn: '3D প্রিভিউ', is_active: true },
     { key: 'nav.contact', href: '#contact', type: 'hash' as const, label_en: 'Contact', label_bn: 'যোগাযোগ', is_active: true },
   ];
 
