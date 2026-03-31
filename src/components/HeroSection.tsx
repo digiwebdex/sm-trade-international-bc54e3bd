@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/apiClient';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import OptimizedImage from '@/components/OptimizedImage';
 
 const SPEED = 4000;
