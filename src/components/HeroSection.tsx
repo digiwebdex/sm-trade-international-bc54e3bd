@@ -9,27 +9,20 @@ import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react
 import OptimizedImage from '@/components/OptimizedImage';
 import heroBg from '@/assets/hero-bg.jpg';
 
-// Module-level flag: animations only play on first ever mount
 let hasAnimated = false;
 
-// Stats are now fetched from site settings
-
-const SPEED = 3500;
-const CUBE_SIZE = 300;
-const HALF = CUBE_SIZE / 2;
+const SPEED = 4000;
 
 const HeroSection = () => {
   const { t, lang } = useLanguage();
   const { get } = useSiteSettings();
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
-  const [prevIdx, setPrevIdx] = useState(0);
-  const [rotating, setRotating] = useState(false);
+  const [sliding, setSliding] = useState(false);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef(0);
   const touchDelta = useRef(0);
-  const directionRef = useRef<'next' | 'prev'>('next');
   const isFirstLoad = !hasAnimated;
 
   useEffect(() => {
@@ -48,7 +41,6 @@ const HeroSection = () => {
     label: get('hero', `stat${n}_label`, n === 1 ? 'Clients' : n === 2 ? 'Years' : n === 3 ? 'Products' : 'Countries'),
   }));
 
-  // Fetch all active products from DB — synced with product gallery
   const { data: dbProducts } = useQuery({
     queryKey: ['hero-products'],
     queryFn: async () => {
@@ -65,31 +57,33 @@ const HeroSection = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const carouselItems = (dbProducts || []).map(p => ({
+  const items = (dbProducts || []).map(p => ({
     img: p.image_url || '',
     label: lang === 'en' ? p.name_en : (p.name_bn || p.name_en),
     id: p.id,
   }));
 
-  const len = carouselItems.length;
+  const len = items.length;
 
-  const goTo = useCallback((idx: number, dir: 'next' | 'prev' = 'next') => {
-    if (idx === current || rotating) return;
-    directionRef.current = dir;
-    setPrevIdx(current);
-    setRotating(true);
-    setCurrent(idx);
-    setTimeout(() => setRotating(false), 700);
-  }, [current, rotating]);
+  const getIdx = (offset: number) => (current + offset + len) % len;
 
-  const next = useCallback(() => goTo((current + 1) % len, 'next'), [goTo, current, len]);
-  const prev = useCallback(() => goTo((current - 1 + len) % len, 'prev'), [goTo, current, len]);
+  const goTo = useCallback((dir: 'next' | 'prev') => {
+    if (sliding || len < 2) return;
+    setSliding(true);
+    setTimeout(() => {
+      setCurrent(prev => dir === 'next' ? (prev + 1) % len : (prev - 1 + len) % len);
+      setSliding(false);
+    }, 500);
+  }, [sliding, len]);
+
+  const next = useCallback(() => goTo('next'), [goTo]);
+  const prev = useCallback(() => goTo('prev'), [goTo]);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || len < 2) return;
     timerRef.current = setInterval(next, SPEED);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [next, paused]);
+  }, [next, paused, len]);
 
   const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -105,6 +99,46 @@ const HeroSection = () => {
     setPaused(false);
   };
 
+  const cardStyle = (size: 'lg' | 'sm') => ({
+    background: 'linear-gradient(145deg, #ffffff 0%, #f8f6f3 100%)',
+    boxShadow: size === 'lg'
+      ? '0 25px 60px -15px rgba(0,0,0,0.15), 0 10px 30px -10px rgba(0,0,0,0.1)'
+      : '0 15px 40px -10px rgba(0,0,0,0.12), 0 5px 15px -5px rgba(0,0,0,0.08)',
+    border: '1px solid rgba(255,255,255,0.6)',
+  });
+
+  const ProductCard = ({ idx, size, className = '' }: { idx: number; size: 'lg' | 'sm'; className?: string }) => {
+    const item = items[idx];
+    if (!item) return null;
+    return (
+      <div
+        className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:scale-[1.03] ${className}`}
+        style={cardStyle(size)}
+        onClick={() => navigate(`/product/${item.id}`)}
+      >
+        <div className="relative w-full h-full p-4 flex items-center justify-center">
+          <OptimizedImage
+            src={item.img}
+            alt={item.label}
+            className="w-full h-full object-contain drop-shadow-md"
+            sizes={size === 'lg' ? '280px' : '140px'}
+            priority={idx < 3}
+            blurPlaceholder={false}
+          />
+          {/* Label badge */}
+          <div className="absolute bottom-2 left-2 right-2">
+            <span
+              className="inline-block text-[10px] sm:text-xs font-semibold px-3 py-1 rounded-full bg-accent/90 text-accent-foreground shadow-sm truncate max-w-full"
+              style={{ fontFamily: 'DM Sans, sans-serif' }}
+            >
+              {item.label}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <section id="home" className="relative bg-foreground" style={{ overflow: 'clip' }}>
       <OptimizedImage src={heroBg} alt="" priority blurPlaceholder={false} className="absolute inset-0 w-full h-full object-cover opacity-20" wrapperClassName="absolute inset-0" />
@@ -115,6 +149,9 @@ const HeroSection = () => {
 
           {/* Left — Value Proposition */}
           <div className="flex flex-col justify-center" style={anim('0s')}>
+            <p className="text-xs uppercase tracking-[0.3em] text-accent/80 mb-3 font-medium" style={{ fontFamily: 'DM Sans, sans-serif', ...anim('0.05s') }}>
+              S.M. Trade International
+            </p>
             <h1
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-5 text-white"
               style={anim('0.1s')}
@@ -129,10 +166,7 @@ const HeroSection = () => {
               {subtitle}
             </p>
 
-            <div
-              className="flex flex-col sm:flex-row gap-4"
-              style={anim('0.3s')}
-            >
+            <div className="flex flex-col sm:flex-row gap-4" style={anim('0.3s')}>
               <Button
                 asChild
                 size="lg"
@@ -160,10 +194,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats row */}
-            <div
-              className="grid grid-cols-4 gap-4 mt-10 pt-8 border-t border-white/10"
-              style={anim('0.5s')}
-            >
+            <div className="grid grid-cols-4 gap-4 mt-10 pt-8 border-t border-white/10" style={anim('0.5s')}>
               {stats.map(s => (
                 <div key={s.label}>
                   <div className="text-white font-bold text-xl md:text-2xl" style={{ fontFamily: 'DM Sans, sans-serif' }}>{s.value}</div>
@@ -173,152 +204,80 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right — 3D Cube */}
+          {/* Right — Multi-Product Slider */}
           {len > 0 && (
-          <div
-            className="relative flex flex-col items-center justify-center touch-pan-y"
-            style={anim('0.4s')}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {/* Ambient glow layers */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-accent/15 blur-[100px] pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-48 h-48 rounded-full bg-primary/20 blur-[60px] pointer-events-none" />
+            <div
+              className="relative flex flex-col items-center justify-center touch-pan-y"
+              style={anim('0.4s')}
+              onMouseEnter={() => setPaused(true)}
+              onMouseLeave={() => setPaused(false)}
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
+              {/* Ambient glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-accent/10 blur-[100px] pointer-events-none" />
 
-            {/* 3D Cube Carousel */}
-            <div className="relative w-full flex justify-center mb-8">
-              <div
-                style={{
-                  width: CUBE_SIZE + 20,
-                  height: CUBE_SIZE + 20,
-                  perspective: '800px',
-                }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'relative',
-                    transformStyle: 'preserve-3d',
-                    transition: rotating ? 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-                    transform: rotating
-                      ? directionRef.current === 'next'
-                        ? `translateZ(-${HALF}px) rotateY(-90deg)`
-                        : `translateZ(-${HALF}px) rotateY(90deg)`
-                      : `translateZ(-${HALF}px) rotateY(0deg)`,
-                  }}
-                >
-                  {/* Front face — current (or previous during rotation) */}
-                  {[rotating ? prevIdx : current].map(idx => {
-                    const item = carouselItems[idx];
-                    if (!item) return null;
-                    return (
-                      <div
-                        key={`front-${idx}`}
-                        className="absolute inset-0 rounded-3xl overflow-hidden cursor-pointer backface-hidden"
-                        style={{
-                          transform: `rotateY(0deg) translateZ(${HALF}px)`,
-                          background: 'linear-gradient(145deg, #ffffff 0%, #f8f6f3 100%)',
-                          boxShadow: '0 25px 80px -20px hsl(var(--sm-gold) / 0.35), 0 10px 30px -10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)',
-                          border: '1.5px solid hsl(var(--sm-gold) / 0.25)',
-                          backfaceVisibility: 'hidden',
-                        }}
-                        onClick={() => item.id ? navigate(`/product/${item.id}`) : navigate('/catalog')}
-                      >
-                        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-accent/30 rounded-tl-xl" />
-                        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-accent/30 rounded-tr-xl" />
-                        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-accent/30 rounded-bl-xl" />
-                        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-accent/30 rounded-br-xl" />
-                        <div className="p-6 flex items-center justify-center h-full">
-                          <OptimizedImage src={item.img} alt={item.label} className="w-full h-full object-contain drop-shadow-lg" sizes="320px" priority={idx < 3} blurPlaceholder={false} />
-                        </div>
-                        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-accent/8 to-transparent pointer-events-none" />
-                      </div>
-                    );
-                  })}
-
-                  {/* Target face — appears on rotation */}
-                  {rotating && (() => {
-                    const item = carouselItems[current];
-                    if (!item) return null;
-                    const faceRotate = directionRef.current === 'next' ? 'rotateY(90deg)' : 'rotateY(-90deg)';
-                    return (
-                      <div
-                        key={`target-${current}`}
-                        className="absolute inset-0 rounded-3xl overflow-hidden cursor-pointer"
-                        style={{
-                          transform: `${faceRotate} translateZ(${HALF}px)`,
-                          background: 'linear-gradient(145deg, #ffffff 0%, #f8f6f3 100%)',
-                          boxShadow: '0 25px 80px -20px hsl(var(--sm-gold) / 0.35), 0 10px 30px -10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)',
-                          border: '1.5px solid hsl(var(--sm-gold) / 0.25)',
-                          backfaceVisibility: 'hidden',
-                        }}
-                        onClick={() => item.id ? navigate(`/product/${item.id}`) : navigate('/catalog')}
-                      >
-                        <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-accent/30 rounded-tl-xl" />
-                        <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-accent/30 rounded-tr-xl" />
-                        <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-accent/30 rounded-bl-xl" />
-                        <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-accent/30 rounded-br-xl" />
-                        <div className="p-6 flex items-center justify-center h-full">
-                          <OptimizedImage src={item.img} alt={item.label} className="w-full h-full object-contain drop-shadow-lg" sizes="320px" priority blurPlaceholder={false} />
-                        </div>
-                        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-accent/8 to-transparent pointer-events-none" />
-                      </div>
-                    );
-                  })()}
+              {/* Product grid: 1 large + 2 small stacked */}
+              <div className="relative w-full max-w-[420px] mx-auto">
+                <div className="grid grid-cols-5 gap-3 h-[320px] sm:h-[360px]">
+                  {/* Large card — spans 3 cols */}
+                  <div className="col-span-3 h-full">
+                    <ProductCard idx={getIdx(0)} size="lg" className="h-full" />
+                  </div>
+                  {/* Two small cards stacked — spans 2 cols */}
+                  <div className="col-span-2 flex flex-col gap-3 h-full">
+                    <ProductCard idx={getIdx(1)} size="sm" className="flex-1" />
+                    <ProductCard idx={getIdx(2)} size="sm" className="flex-1" />
+                  </div>
                 </div>
               </div>
 
-              {/* Nav arrows — refined */}
-              <button
-                onClick={prev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl flex items-center justify-center text-white/50 hover:text-white hover:border-accent/50 hover:bg-accent/15 hover:scale-110 transition-all duration-300 z-20 shadow-lg shadow-black/10"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={next}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl flex items-center justify-center text-white/50 hover:text-white hover:border-accent/50 hover:bg-accent/15 hover:scale-110 transition-all duration-300 z-20 shadow-lg shadow-black/10"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Active label + controls */}
-            <div className="flex items-center gap-3">
-              <div
-                className="text-sm font-semibold px-6 py-2 rounded-full bg-gradient-to-r from-accent to-accent/80 text-accent-foreground shadow-lg shadow-accent/30 transition-all duration-500"
-                style={{ fontFamily: 'DM Sans, sans-serif' }}
-              >
-                {carouselItems[current]?.label}
-              </div>
-              <button
-                onClick={() => setPaused(p => !p)}
-                className="w-9 h-9 rounded-full border border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white/70 hover:border-accent/30 transition-all duration-300"
-                title={paused ? 'Play' : 'Pause'}
-              >
-                {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-
-            {/* Dot indicators */}
-            <div className="flex items-center gap-1.5 mt-4">
-              {carouselItems.map((_, i) => (
+              {/* Controls */}
+              <div className="flex items-center gap-3 mt-6">
                 <button
-                  key={i}
-                  onClick={() => goTo(i, i > current ? 'next' : 'prev')}
-                  className={`rounded-full transition-all duration-500 ${
-                    i === current
-                      ? 'w-6 h-2 bg-accent shadow-sm shadow-accent/40'
-                      : 'w-2 h-2 bg-white/20 hover:bg-white/40'
-                  }`}
-                />
-              ))}
+                  onClick={prev}
+                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl flex items-center justify-center text-white/50 hover:text-white hover:border-accent/50 hover:bg-accent/15 hover:scale-110 transition-all duration-300"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                {/* Dot indicators */}
+                <div className="flex items-center gap-1.5">
+                  {items.slice(0, Math.min(len, 10)).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        if (i !== current) {
+                          setSliding(true);
+                          setTimeout(() => { setCurrent(i); setSliding(false); }, 500);
+                        }
+                      }}
+                      className={`rounded-full transition-all duration-500 ${
+                        i === current
+                          ? 'w-6 h-2 bg-accent shadow-sm shadow-accent/40'
+                          : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={next}
+                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl flex items-center justify-center text-white/50 hover:text-white hover:border-accent/50 hover:bg-accent/15 hover:scale-110 transition-all duration-300"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => setPaused(p => !p)}
+                  className="w-9 h-9 rounded-full border border-white/10 bg-white/5 backdrop-blur-md flex items-center justify-center text-white/40 hover:text-white/70 hover:border-accent/30 transition-all duration-300"
+                  title={paused ? 'Play' : 'Pause'}
+                >
+                  {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             </div>
-          </div>
           )}
         </div>
       </div>
