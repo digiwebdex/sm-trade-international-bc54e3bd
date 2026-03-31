@@ -22,7 +22,7 @@ const sectionComponents: Record<string, React.ComponentType> = {
   contact: ContactSection,
 };
 
-const defaultOrder = ['hero', 'about', 'services', 'process', 'products', 'clients', 'quote', 'contact'];
+const defaultOrder = ['hero', 'about', 'services', 'process', 'productSlider', 'products', 'clients', 'quote', 'contact'];
 
 const Index = () => {
   const { data: config } = useQuery({
