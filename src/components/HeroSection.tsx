@@ -77,9 +77,9 @@ const HeroSection = () => {
       return { display: 'none' } as React.CSSProperties;
     }
 
-    // Circular arrangement calculations
+    // Circular arrangement calculations — tight spacing, no gaps
     const angle = diff * (360 / Math.max(len, VISIBLE));
-    const radius = 320; // radius of the circular path in px
+    const radius = 200; // smaller radius = cards closer together
     const radian = (angle * Math.PI) / 180;
     
     // X position along the circle
